@@ -1,25 +1,53 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import logo from "./logo.svg";
+import "./App.css";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { HomePage } from "./home/pages/Home";
+import { RegisterUser } from "./auth/pages/Register";
+import { LoginUser } from "./auth/pages/Login";
+import { AuthLayout } from "./generics/layouts/AuthLayout";
+import { VerifyEmailToken } from "./auth/pages/VerifyEmail";
+import { RequestForgotPassword } from "./auth/pages/ForgotPassword";
+import { AdminLayout } from "./generics/layouts/AdminLayout";
+import { ClusterMgt } from "./cluster/pages/ClusterMgt";
+import { allRoutes } from "./generics/contexts/routing/routes";
+import { AuthRoute } from "./generics/contexts/routing/AuthRoute";
+import { AuthProvider } from "./generics/contexts/routing/AuthContext";
+
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <AuthProvider>
+      
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" Component={HomePage} />
+        <Route path="/register" element={<RegisterUser />} />
+        
+        <Route path="/auth" element={<AuthLayout />}>
+          <Route path="/auth/register" element={<RegisterUser />} />
+          <Route path="/auth/login" element={<LoginUser />} />
+          <Route path="/auth/verify-user" element={<VerifyEmailToken />} />
+          <Route
+            path="/auth/forgot-password"
+            element={<RequestForgotPassword />}
+          />
+        </Route>
+
+        <Route path="/post">
+        </Route>
+
+        <Route path="/admin" element={<AdminLayout />}>
+          {
+            allRoutes.map((aRoute) => (
+              <AuthRoute {...aRoute} />
+            ))
+          }
+      </Route>
+
+      </Routes>
+    </BrowserRouter>
+    </AuthProvider>
   );
 }
 
