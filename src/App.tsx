@@ -14,39 +14,38 @@ import { allRoutes } from "./generics/contexts/routing/routes";
 import { AuthRoute } from "./generics/contexts/routing/AuthRoute";
 import { AuthProvider } from "./generics/contexts/routing/AuthContext";
 
-
 function App() {
   return (
     <AuthProvider>
-      
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" Component={HomePage} />
-        <Route path="/register" element={<RegisterUser />} />
-        
-        <Route path="/auth" element={<AuthLayout />}>
-          <Route path="/auth/register" element={<RegisterUser />} />
-          <Route path="/auth/login" element={<LoginUser />} />
-          <Route path="/auth/verify-user" element={<VerifyEmailToken />} />
-          <Route
-            path="/auth/forgot-password"
-            element={<RequestForgotPassword />}
-          />
-        </Route>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" Component={HomePage} />
+          <Route path="/register" element={<RegisterUser />} />
 
-        <Route path="/post">
-        </Route>
+          <Route path="/auth" element={<AuthLayout />}>
+            <Route path="/auth/register" element={<RegisterUser />} />
+            <Route path="/auth/login" element={<LoginUser />} />
+            <Route path="/auth/verify-user" element={<VerifyEmailToken />} />
+            <Route
+              path="/auth/forgot-password"
+              element={<RequestForgotPassword />}
+            />
+          </Route>
 
-        <Route path="/admin" element={<AdminLayout />}>
-          {
-            allRoutes.map((aRoute) => (
-              <AuthRoute {...aRoute} />
-            ))
-          }
-      </Route>
+          <Route path="/post"></Route>
 
-      </Routes>
-    </BrowserRouter>
+          <Route path="/admin" element={<AdminLayout />}>
+            {allRoutes.map((aRoute, i) => (
+              <Route key={i} path={`/admin/${aRoute.appDomain}`}>
+                <Route
+                  path={`/admin/${aRoute.appDomain}/${aRoute.path}`}
+                  element={<aRoute.element {...aRoute.props} />}
+                />
+              </Route>
+            ))}
+          </Route>
+        </Routes>
+      </BrowserRouter>
     </AuthProvider>
   );
 }
