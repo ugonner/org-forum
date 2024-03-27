@@ -1,5 +1,5 @@
 import React from "react";
-import AuthStore from '../../auth/contexts/auth'
+import AuthStore from '../../../auth/contexts/auth'
 
 export const ApiContextStore = {AuthStore}
 

@@ -16,10 +16,9 @@ export const AuthLayout = () => {
       const queryStrippedPath = aR.path.split("?")[0].split("#")[0];
       return lastPathSegment === queryStrippedPath;
     }) as IRoute;
-    
-    if (route?.isAuth && ((!route) || (!isLoggedIn))) {
+    if (route?.isAuth && ((!isLoggedIn))) {
       toast.error("you are not logged in to access this page");
-      navigate("/login");
+      navigate("/auth/login");
     }
   });
     return (

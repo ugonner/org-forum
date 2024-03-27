@@ -2,7 +2,7 @@ import { useQuery } from "react-query";
 import { queryFormatter } from "../../generics/utils/queryFormatter";
 import { IClusterDTO, IUpdateClusterDTO } from "../typings/cluster";
 import { IGenericResponse, QueryReturn } from "../../generics/typings/typngs";
-import { requestApi } from "../../generics/contexts/base";
+import { requestApi } from "../../generics/contexts/api/base";
 
 export const createCluster = async (payload: IClusterDTO): Promise<IGenericResponse<IClusterDTO>> => {
     const res = await  requestApi({

@@ -1,5 +1,5 @@
 import { useMutation } from "react-query"
-import { requestApi } from "../generics/contexts/base"
+import { requestApi } from "../generics/contexts/api/base"
 import { ICreateUser, LoginDTO, RequestForgotPasswordTokenDTO, ResetForgotPasswordDTO, ResetPasswordDTO } from "../auth/typings/auth"
 import { IGenericResponse } from "../generics/typings/typngs"
 import { UserDTO } from "../user/typings"

@@ -4,7 +4,7 @@ import "./index.css";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import { QueryClient, QueryClientProvider } from "react-query";
-import { ApiContextProvider } from "./generics/contexts";
+import { ApiContextProvider } from "./generics/contexts/api";
 
 const queryClient = new QueryClient();
 const root = ReactDOM.createRoot(

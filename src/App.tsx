@@ -9,44 +9,49 @@ import { AuthLayout } from "./generics/layouts/AuthLayout";
 import { VerifyEmailToken } from "./auth/pages/VerifyEmail";
 import { RequestForgotPassword } from "./auth/pages/ForgotPassword";
 import { AdminLayout } from "./generics/layouts/AdminLayout";
-import { ClusterMgt } from "./cluster/pages/ClusterMgt";
-import { allRoutes } from "./generics/contexts/routing/routes";
-import { AuthRoute } from "./generics/contexts/routing/AuthRoute";
+import {
+  adminRoutes,
+  allRoutes,
+  userRoutes,
+} from "./generics/contexts/routing/routes";
 import { AuthProvider } from "./generics/contexts/routing/AuthContext";
+import { QueryClient, QueryClientProvider } from "react-query";
 
 function App() {
+  const queryClient = new QueryClient();
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" Component={HomePage} />
-          <Route path="/register" element={<RegisterUser />} />
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" Component={HomePage} />
+            <Route path="/register" element={<RegisterUser />} />
 
-          <Route path="/auth" element={<AuthLayout />}>
-            <Route path="/auth/register" element={<RegisterUser />} />
-            <Route path="/auth/login" element={<LoginUser />} />
-            <Route path="/auth/verify-user" element={<VerifyEmailToken />} />
-            <Route
-              path="/auth/forgot-password"
-              element={<RequestForgotPassword />}
-            />
-          </Route>
+            <Route path="/" element={<AuthLayout />}>
+              {userRoutes.map((aRoute, i) => (
+                <Route key={i} path={`/${aRoute.appDomain}`}>
+                  <Route
+                    path={`/${aRoute.appDomain}/${aRoute.path}`}
+                    element={<aRoute.element {...aRoute.props} />}
+                  />
+                </Route>
+              ))}
+            </Route>
 
-          <Route path="/post"></Route>
-
-          <Route path="/admin" element={<AdminLayout />}>
-            {allRoutes.map((aRoute, i) => (
-              <Route key={i} path={`/admin/${aRoute.appDomain}`}>
-                <Route
-                  path={`/admin/${aRoute.appDomain}/${aRoute.path}`}
-                  element={<aRoute.element {...aRoute.props} />}
-                />
-              </Route>
-            ))}
-          </Route>
-        </Routes>
-      </BrowserRouter>
-    </AuthProvider>
+            <Route path="/admin" element={<AdminLayout />}>
+              {adminRoutes.map((aRoute, i) => (
+                <Route key={i} path={`/admin/${aRoute.appDomain}`}>
+                  <Route
+                    path={`/admin/${aRoute.appDomain}/${aRoute.path}`}
+                    element={<aRoute.element {...aRoute.props} />}
+                  />
+                </Route>
+              ))}
+            </Route>
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
+    </QueryClientProvider>
   );
 }
 

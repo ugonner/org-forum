@@ -2,7 +2,7 @@ import { useQuery } from "react-query";
 import { queryFormatter } from "../../generics/utils/queryFormatter";
 import { IFocalareaDTO, IUpdateFocalareaDTO } from "../typings/focalarea";
 import { IGenericResponse, QueryReturn } from "../../generics/typings/typngs";
-import { requestApi } from "../../generics/contexts/base";
+import { requestApi } from "../../generics/contexts/api/base";
 
 export const createFocalarea = async (payload: IFocalareaDTO): Promise<IGenericResponse<IFocalareaDTO>> => {
     const res = await  requestApi({

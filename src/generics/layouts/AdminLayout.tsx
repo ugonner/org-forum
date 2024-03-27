@@ -21,7 +21,7 @@ export const AdminLayout = () => {
     
     if ((!route) || (!isLoggedIn) || (!isAnAdmin))  {
       toast.error("you are not logged in as admin to access this page");
-      navigate("/login");
+      navigate("/auth/login");
     }
   });
 
