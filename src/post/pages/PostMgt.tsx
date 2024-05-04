@@ -1,25 +1,34 @@
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import { ResponseMessage } from "../../generics/components/ResponseMessage";
 import { Popover } from "../../generics/components/popover/Popover";
-import { useGetClustersQuery } from "../contexts/cluster";
+import { useGetPostsQuery } from "../contexts/post";
 import { ComponentModal } from "../../generics/components/modals/ComponentModal";
-import { CreateOrUpdateCluster } from "./CreateAndUpdateCluster";
+import { CreateOrUpdatePost } from "./CreateAndUpdatePost";
 import {
   GeneralSelect,
   ISelectOption,
 } from "../../generics/components/form/Select";
+import { useModalContextStore } from "../../generics/components/modals/ModalContextProvider";
+import { useNavigate } from "react-router-dom";
+import { getCategorys } from "../../category/contexts/category";
+import { getClusters } from "../../cluster/contexts/cluster";
+import { getFocalareas } from "../../focalarea/contexts/focalarea";
+import { toast } from "react-toastify";
+import { useThemeContextStore } from "../../generics/contexts/theme/theme";
 
-export const ClusterMgt = () => {
-  const [toggleCreateModal, setToggleCreateModal] = useState(false);
-  const [clusterId, setClusterId] = useState("create");
+export const PostMgt = () => {
+  const navigate = useNavigate();
+  const [postId, setPostId] = useState("create");
+  const {tableThemeCssClass} = useThemeContextStore()
   const [queryPayload, setQueryPayload] = useState(
     {} as { [key: string]: string }
   );
   const [order, setOrder] = useState("-1");
   const [orderBy, setOrderBy] = useState("createdAt");
-
+  const {setShowModalText} = useModalContextStore()
   const filterOptions: ISelectOption[] = [
-    { label: "Published", value: "isPublished" },
+    { label: "Published", value: "true" },
+    { label: "Not Published", value: "false" },
   ];
   const orderOptions: ISelectOption[] = [
     { label: "DESC", value: "-1" },
@@ -31,75 +40,125 @@ export const ClusterMgt = () => {
   ];
 
   const {
-    data: clusters,
+    data: posts,
     error,
     isLoading,
     isError,
-  } = useGetClustersQuery({
+  } = useGetPostsQuery({
     ...queryPayload,
     _orderBy: orderBy,
     _order: order,
   });
 
-  const setUpModal = (clusterId: string) => {
-    setClusterId(clusterId);
-    setToggleCreateModal(true);
+  if(posts){
+    console.log((posts.docs[3]), "post user" )
+  }
+
+  const setUpModal = (postId: string) => {
+    setPostId(postId);
+    setShowModalText("create-post")
   };
 
-  const filterUsers = (payload: ISelectOption[]) => {
-    const queryObj: { [key: string]: string } = {};
-    payload.forEach((p) => {
-      queryObj[p.label] = p.value;
-    });
-    setQueryPayload(queryObj);
-  };
 
   const searchBy = (searchTerm: string) => {
     if (searchTerm?.length < 3) return;
-    setQueryPayload({ _searchBy: searchTerm });
+    setQueryPayload({_searchTerm: searchTerm });
   };
 
+  const [categoryOptions, setCategoryOptions] = useState([] as ISelectOption[]);
+  const [clusterOptions, setClusterOptions] = useState([] as ISelectOption[]);
+  const [focalareaOptions, setFocalareaOptions] = useState([] as ISelectOption[]);
+  
+  useEffect(() => {
+    getCategorys({})
+    .then((res) => {
+      setCategoryOptions(res.docs?.map((c) => ({label: c.categoryName, value: `${c._id}`})))
+    })
+    .catch((err) => console.error(err.message))
+    getClusters({})
+    .then((res) => {
+      setClusterOptions(res.docs?.map((c) => ({label: c.clusterName, value: `${c._id}`})))
+    })
+    .catch((err) => console.error(err.message))
+    getFocalareas({})
+    .then((res) => {
+      setFocalareaOptions(res.docs?.map((f) => ({label: f.focalareaName, value: `${f._id}`})))
+    })
+    .catch((err) => console.error(err.message))
+    
+  }, [])
   return (
     <div>
       <ResponseMessage
         isLoading={isLoading}
         isError={isError}
         error={error}
-        data={clusters}
+        data={posts}
       />
 
       <div className="row">
-        <div className="col-sm-4">
+        <div className="col-sm-3">
           <input
             type="search"
             className="form-control"
             onChange={(e) => searchBy(e.target.value)}
-            placeholder="search cluster by name, contact phone number, address"
-            aria-label="search cluster"
+            placeholder="search post by name, contact phone number, address"
+            aria-label="search post"
           />
         </div>
-        <div className="col-sm-4">
+        <div className="col-sm-2">
           <button
             className="btn btn-primary"
-            onClick={() => setUpModal(`create`)}
+            onClick={() => navigate(`/admin/post/post-mutate/create`)}
           >
             Create New
           </button>
         </div>
 
-        <div className="col-sm-4 text-right">
+        {/* for filters */}
+        <div className="col-sm-7 text-right">
           <div className="row">
-            <div className="col-sm-3">
-              <h1>{clusters?.totalDocs} </h1>
-              <small className="d-6">clusters</small>
+            <div className="col-sm-2">
+              <h1>{posts?.totalDocs} </h1>
+              <small className="d-6">posts</small>
             </div>
-            <div className="col-sm-9">
+            
+            {/* filters by category cluster and focaalarea */}
+            
+            <div className="col-sm-5">
+              <GeneralSelect
+                selectOptions={categoryOptions}
+                isMulti={false}
+                handleChange={(option) =>
+                  setQueryPayload({categorys: (option as ISelectOption).value})
+                }
+                label="Category"
+              />
+              <GeneralSelect
+                selectOptions={clusterOptions}
+                isMulti={false}
+                handleChange={(option) =>
+                  setQueryPayload({clusters: (option as ISelectOption).value})
+                }
+                label="Cluster"
+              />
+              <GeneralSelect
+                selectOptions={focalareaOptions}
+                isMulti={false}
+                handleChange={(option) =>
+                  setQueryPayload({focalareas: (option as ISelectOption).value})
+                }
+                label="Focal Area"
+              />
+            </div>
+            <div className="col-sm-5">
               <GeneralSelect
                 selectOptions={filterOptions}
-                isMulti={true}
+                isMulti={false}
                 handleChange={(option) =>
-                  filterUsers(option as ISelectOption[])
+                  setQueryPayload({isPublished: (option as ISelectOption).value})
                 }
+                label="Publication status"
               />
               <GeneralSelect
                 selectOptions={orderByOptions}
@@ -107,6 +166,7 @@ export const ClusterMgt = () => {
                 handleChange={(option) =>
                   setOrderBy((option as ISelectOption).value)
                 }
+                label="Order By"
               />
               <GeneralSelect
                 selectOptions={orderOptions}
@@ -114,13 +174,14 @@ export const ClusterMgt = () => {
                 handleChange={(option) =>
                   setOrder((option as ISelectOption).value)
                 }
+                label="Sort (Descending or Ascending)"
               />
             </div>
           </div>
         </div>
         <div className="row my-4">
           <div className="col-sm-12">
-            <table className="table table-responsive table-triped">
+            <table className={`table ${tableThemeCssClass} table-responsive table-tripped`}>
               <thead>
                 <tr>
                   <th>Sn</th>
@@ -128,45 +189,45 @@ export const ClusterMgt = () => {
                   <th>Avatar</th>
                   <th>Name</th>
                   <th>Last Managed By</th>
-                  <th>Contact Phone</th>
+                  <th>Publication status</th>
                   <th>Created At</th>
                   <th>Action</th>
                 </tr>
               </thead>
               <tbody>
-                {clusters &&
-                  clusters?.docs?.length > 0 &&
-                  clusters?.docs.map((cl, i) => (
+                {posts &&
+                  posts?.docs?.length > 0 &&
+                  posts?.docs.map((pst, i) => (
                     <tr key={i}>
                       <td>{i + 1}</td>
                       <td>
-                        {cl.avatar && (
-                          <img src={cl.avatar} className="img-avatar" />
+                        {pst.media && (
+                          <img src={pst.media.mediaUrl} className="img-avatar" />
                         )}
                       </td>
-                      <td>{cl.clusterName}</td>
-                      <td>{(cl.lastManagedBy as any)?.firstName}</td>
-                      <td>{cl.contactPhoneNumber ?? " "}</td>
+                      <td>{pst.title}</td>
+                      <td>{(pst.user as any)?.firstName}</td>
+                      <td>{pst.isPublished ? "published" : "Not published"}</td>
                       <td>
                         {
-                          new Date((cl as any).createdAt)
+                          new Date((pst as any).createdAt)
                             .toISOString()
                             .split("T")[0]
                         }
                       </td>
                       <td>
                         <i
-                          className="btn fa fa-create"
+                          className="btn fa fa-edit"
                           aria-label="open edit screen"
                           role="button"
-                          onClick={() => setUpModal((cl as any)._id)}
+                          onClick={() => navigate(`/admin/post/post-mutate/${pst._id}`)}
                         ></i>
                       </td>
                     </tr>
                   ))}
               </tbody>
             </table>
-            {clusters?.docs?.length && (
+            {posts?.docs?.length && (
               <ul className="pagination">
                 <li className="page-item">
                   <span
@@ -175,7 +236,7 @@ export const ClusterMgt = () => {
                     onClick={() => {
                       setQueryPayload(
                         (prev) =>
-                          ({ ...prev, _page: Number(clusters.page) - 1 } as any)
+                          ({ ...prev, _page: Number(posts.page) - 1 } as any)
                       );
                     }}
                   >
@@ -189,7 +250,7 @@ export const ClusterMgt = () => {
                     onClick={() => {
                       setQueryPayload(
                         (prev) =>
-                          ({ ...prev, _page: Number(clusters.page) + 1 } as any)
+                          ({ ...prev, _page: Number(posts.page) + 1 } as any)
                       );
                     }}
                   >
@@ -203,10 +264,9 @@ export const ClusterMgt = () => {
       </div>
 
       <ComponentModal
-        modalBody={<CreateOrUpdateCluster clusterId={clusterId} />}
-        isOpen={toggleCreateModal}
-        closeModal={() => setToggleCreateModal(false)}
-        modalTitle="Manage Cluster"
+        modalBody={<CreateOrUpdatePost postId={postId} />}
+        showModalText="create-post"
+        modalTitle="Manage Post"
       />
     </div>
   );

@@ -1,15 +1,20 @@
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import { ResponseMessage } from "../../generics/components/ResponseMessage";
 import { Popover } from "../../generics/components/popover/Popover";
-import { useGetFocalareasQuery } from "../contexts/focalarea";
+import { getFocalareas, useGetFocalareasQuery } from "../contexts/focalarea";
 import { ComponentModal } from "../../generics/components/modals/ComponentModal";
 import { CreateOrUpdateFocalarea } from "./CreateAndUpdateFocalarea";
 import {
   GeneralSelect,
   ISelectOption,
 } from "../../generics/components/form/Select";
+import { useModalContextStore } from "../../generics/components/modals/ModalContextProvider";
+import { getPostsCount } from "../../post/contexts/post";
+import { useThemeContextStore } from "../../generics/contexts/theme/theme";
 
 export const FocalareaMgt = () => {
+  const {tableThemeCssClass} = useThemeContextStore()
+  const {setShowModalText} = useModalContextStore()
   const [toggleCreateModal, setToggleCreateModal] = useState(false);
   const [focalareaId, setFocalareaId] = useState("create");
   const [queryPayload, setQueryPayload] = useState(
@@ -41,8 +46,25 @@ export const FocalareaMgt = () => {
     _order: order,
   });
 
+  const [focalareaNoOfPostsArr, setFocalareaNoOfPostsArr ] = useState([] as number[])
+  useEffect(() => {
+    getFocalareas({})
+    .then((res) => {
+      if(res && res.docs?.length){
+      Promise.allSettled(
+        res.docs.map((c) => getPostsCount({"focalareas": c._id}))
+      )
+      .then((res) => {
+        const nPArrr: number[] = res.map((r) => r.status === "fulfilled" ? r.value.totalDocs : 0);
+        setFocalareaNoOfPostsArr(nPArrr)
+      })
+    }
+    })
+    }, [])
+
   const setUpModal = (focalareaId: string) => {
     setFocalareaId(focalareaId);
+    setShowModalText(focalareaId)
     setToggleCreateModal(true);
   };
 
@@ -58,6 +80,8 @@ export const FocalareaMgt = () => {
     if (searchTerm?.length < 3) return;
     setQueryPayload({ _searchBy: searchTerm });
   };
+
+
 
   return (
     <div>
@@ -77,6 +101,7 @@ export const FocalareaMgt = () => {
             placeholder="search focalarea by name, contact phone number, address"
             aria-label="search focalarea"
           />
+          
         </div>
         <div className="col-sm-4">
           <button
@@ -120,7 +145,7 @@ export const FocalareaMgt = () => {
         </div>
         <div className="row my-4">
           <div className="col-sm-12">
-            <table className="table table-responsive table-triped">
+            <table className={`table table-responsive table-striped ${tableThemeCssClass}`}>
               <thead>
                 <tr>
                   <th>Sn</th>
@@ -128,7 +153,7 @@ export const FocalareaMgt = () => {
                   <th>Avatar</th>
                   <th>Name</th>
                   <th>Last Managed By</th>
-                  <th>Contact Phone</th>
+                  <th>Posts</th>
                   <th>Created At</th>
                   <th>Action</th>
                 </tr>
@@ -146,7 +171,7 @@ export const FocalareaMgt = () => {
                       </td>
                       <td>{cl.focalareaName}</td>
                       <td>{(cl.lastManagedBy as any)?.firstName}</td>
-                      <td>{cl.contactPhoneNumber ?? " "}</td>
+                      <td>{focalareaNoOfPostsArr[i] ?? " "}</td>
                       <td>
                         {
                           new Date((cl as any).createdAt)
@@ -156,7 +181,7 @@ export const FocalareaMgt = () => {
                       </td>
                       <td>
                         <i
-                          className="btn fa fa-create"
+                          className="fa fa-edit"
                           aria-label="open edit screen"
                           role="button"
                           onClick={() => setUpModal((cl as any)._id)}
@@ -204,9 +229,9 @@ export const FocalareaMgt = () => {
 
       <ComponentModal
         modalBody={<CreateOrUpdateFocalarea focalareaId={focalareaId} />}
-        isOpen={toggleCreateModal}
-        closeModal={() => setToggleCreateModal(false)}
+        showModalText={focalareaId}
         modalTitle="Manage Focalarea"
+        
       />
     </div>
   );

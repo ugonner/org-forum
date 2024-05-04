@@ -1,15 +1,20 @@
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import { ResponseMessage } from "../../generics/components/ResponseMessage";
 import { Popover } from "../../generics/components/popover/Popover";
-import { useGetClustersQuery } from "../contexts/cluster";
+import { getClusters, useGetClustersQuery } from "../contexts/cluster";
 import { ComponentModal } from "../../generics/components/modals/ComponentModal";
 import { CreateOrUpdateCluster } from "./CreateAndUpdateCluster";
 import {
   GeneralSelect,
   ISelectOption,
 } from "../../generics/components/form/Select";
+import { useModalContextStore } from "../../generics/components/modals/ModalContextProvider";
+import { getPostsCount } from "../../post/contexts/post";
+import { useThemeContextStore } from "../../generics/contexts/theme/theme";
 
 export const ClusterMgt = () => {
+  const {tableThemeCssClass} = useThemeContextStore();
+  const {setShowModalText} = useModalContextStore()
   const [toggleCreateModal, setToggleCreateModal] = useState(false);
   const [clusterId, setClusterId] = useState("create");
   const [queryPayload, setQueryPayload] = useState(
@@ -41,8 +46,25 @@ export const ClusterMgt = () => {
     _order: order,
   });
 
+  const [clusterNoOfPostsArr, setClusterNoOfPostsArr ] = useState([] as number[])
+  useEffect(() => {
+    getClusters({})
+    .then((res) => {
+      if(res && res.docs?.length){
+      Promise.allSettled(
+        res.docs.map((c) => getPostsCount({"clusters": c._id}))
+      )
+      .then((res) => {
+        const nPArrr: number[] = res.map((r) => r.status === "fulfilled" ? r.value.totalDocs : 0);
+        setClusterNoOfPostsArr(nPArrr)
+      })
+    }
+    })
+    }, [])
+
   const setUpModal = (clusterId: string) => {
     setClusterId(clusterId);
+    setShowModalText(clusterId)
     setToggleCreateModal(true);
   };
 
@@ -58,6 +80,8 @@ export const ClusterMgt = () => {
     if (searchTerm?.length < 3) return;
     setQueryPayload({ _searchBy: searchTerm });
   };
+
+
 
   return (
     <div>
@@ -77,6 +101,7 @@ export const ClusterMgt = () => {
             placeholder="search cluster by name, contact phone number, address"
             aria-label="search cluster"
           />
+          
         </div>
         <div className="col-sm-4">
           <button
@@ -120,7 +145,7 @@ export const ClusterMgt = () => {
         </div>
         <div className="row my-4">
           <div className="col-sm-12">
-            <table className="table table-responsive table-triped">
+            <table className={`table table-responsive ${tableThemeCssClass}`}>
               <thead>
                 <tr>
                   <th>Sn</th>
@@ -128,7 +153,7 @@ export const ClusterMgt = () => {
                   <th>Avatar</th>
                   <th>Name</th>
                   <th>Last Managed By</th>
-                  <th>Contact Phone</th>
+                  <th>Posts</th>
                   <th>Created At</th>
                   <th>Action</th>
                 </tr>
@@ -146,7 +171,7 @@ export const ClusterMgt = () => {
                       </td>
                       <td>{cl.clusterName}</td>
                       <td>{(cl.lastManagedBy as any)?.firstName}</td>
-                      <td>{cl.contactPhoneNumber ?? " "}</td>
+                      <td>{clusterNoOfPostsArr[i] ?? " "}</td>
                       <td>
                         {
                           new Date((cl as any).createdAt)
@@ -156,7 +181,7 @@ export const ClusterMgt = () => {
                       </td>
                       <td>
                         <i
-                          className="btn fa fa-create"
+                          className="fa fa-edit"
                           aria-label="open edit screen"
                           role="button"
                           onClick={() => setUpModal((cl as any)._id)}
@@ -204,9 +229,9 @@ export const ClusterMgt = () => {
 
       <ComponentModal
         modalBody={<CreateOrUpdateCluster clusterId={clusterId} />}
-        isOpen={toggleCreateModal}
-        closeModal={() => setToggleCreateModal(false)}
+        showModalText={clusterId}
         modalTitle="Manage Cluster"
+        
       />
     </div>
   );

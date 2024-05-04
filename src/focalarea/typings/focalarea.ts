@@ -4,9 +4,8 @@ export interface IFocalareaDTO {
     detail?: string;
     avatar?: string;
     lastManagedBy?: string;
-    contactEmail?: string;
-    contactPhoneNumber?: string;
-    contactAddress?: string;
+    _id?: string;
+    noOfPosts?: string;
     
 }
 

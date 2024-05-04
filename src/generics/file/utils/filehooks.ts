@@ -27,8 +27,7 @@ export const uploadFiles = async (
   selectedFiles: IFileAndObjectUrl[]
 ): Promise<IFile[] | null> => {
   try {
-    e.preventDefault();
-    alert(`fired form ${e.type}`);
+    e.preventDefault && e.preventDefault();
     if (selectedFiles.length === 0) return null;
 
     const payload = new FormData();

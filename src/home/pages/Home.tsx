@@ -7,22 +7,21 @@ import { MissionStatements } from "../components/MissionStatements"
 import { ThematicAreas } from "../components/ThematicAreass"
 import { Testimonials } from "../components/Testimonials"
 import { BlogPosts } from "../components/Blogposts"
+import { Executives } from "../components/Executives"
 //import "./css/style.css"
 export const HomePage: React.FC = () => {
-    return (
+
+	return (
 		<>
-		<Header/>
+			<Header/>
 		<Banner />
 		<MissionStatements />
 		<Aboutus />
 		<ThematicAreas />
-		<Testimonials />
+		{/* <Testimonials /> */}
+		<Executives />
 		<BlogPosts />
-		<Footer/>	
-
-</>	
-
-
-
-    )
+		<Footer/>
+		</>
+	)
 }

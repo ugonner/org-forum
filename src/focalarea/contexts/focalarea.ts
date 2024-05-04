@@ -4,6 +4,7 @@ import { IFocalareaDTO, IUpdateFocalareaDTO } from "../typings/focalarea";
 import { IGenericResponse, QueryReturn } from "../../generics/typings/typngs";
 import { requestApi } from "../../generics/contexts/api/base";
 
+export const defaultFocalareaImageUrl = `/images/post/post.png`;
 export const createFocalarea = async (payload: IFocalareaDTO): Promise<IGenericResponse<IFocalareaDTO>> => {
     const res = await  requestApi({
         url: `/focalarea`,

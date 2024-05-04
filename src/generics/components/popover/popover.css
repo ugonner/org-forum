@@ -3,8 +3,9 @@
     .popover-container {
         z-index: 10;
         position: absolute;
-        right: 2px;
-        width: auto;
+        right: 15px;
+        width: 160px;
+        background-color: black;
 
     }
     .popover-display-element {

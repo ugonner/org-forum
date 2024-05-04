@@ -7,6 +7,8 @@ export interface IClusterDTO {
     contactEmail?: string;
     contactPhoneNumber?: string;
     contactAddress?: string;
+    _id?: string;
+    noOfPosts?: number;
     
 }
 

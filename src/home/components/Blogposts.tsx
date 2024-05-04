@@ -1,63 +1,62 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { IGenericResponse, QueryReturn } from "../../generics/typings/typngs";
+import { IPostDTO } from "../../post/typings/post";
+import { toast } from "react-toastify";
+import { getPosts } from "../../post/contexts/post";
+import { PostCard } from "../../post/pages/public/PostCard";
 
 export const BlogPosts: React.FC = () => {
-    return (
-        <>
-        
-		{/* Start Blog Section */}
-		<div className="blog-section">
-			<div className="container">
-				<div className="row mb-5">
-					<div className="col-md-6">
-						<h2 className="section-title">Recent Blog</h2>
-					</div>
-					<div className="col-md-6 text-start text-md-end">
-						<a href="#" className="more">View All Posts</a>
-					</div>
-				</div>
+  const navigate = useNavigate();
+  const [posts, setPosts] = useState({} as QueryReturn<IPostDTO>);
+  useEffect(() => {
+    (async () => {
+      try {
+        const postsRes = await getPosts({
+          _limit: 6,
+          _page: 1,
+          _orderBy: "datePublished",
+          _order: "DESC",
+        });
+        setPosts(postsRes);
+      } catch (error) {
+        toast.error((error as IGenericResponse<unknown>).message);
+      }
+    })();
+  }, []);
+  return (
+    <>
+      {/* Start Blog Section */}
+      <div className="blog-section">
+        <div className="container">
+          <div className="row mb-5">
+            <div className="col-md-6">
+              <h2 className="section-title">Recent Activities</h2>
+            </div>
 
-				<div className="row">
+            <div className="col-md-6 text-start text-md-end">
+              <span
+                role="button"
+                className="more"
+                onClick={() => navigate(`/post/posts`)}
+              >
+                View All Posts
+              </span>
+            </div>
+          </div>
 
-					<div className="col-12 col-sm-6 col-md-4 mb-4 mb-md-0">
-						<div className="post-entry">
-							<a href="#" className="post-thumbnail"><img src="images/post-1.jpg" alt="Image" className="img-fluid"/></a>
-							<div className="post-content-entry">
-								<h3><a href="#">First Time Home Owner Ideas</a></h3>
-								<div className="meta">
-									<span>by <a href="#">Kristin Watson</a></span> <span>on <a href="#">Dec 19, 2021</a></span>
-								</div>
-							</div>
-						</div>
-					</div>
-
-					<div className="col-12 col-sm-6 col-md-4 mb-4 mb-md-0">
-						<div className="post-entry">
-							<a href="#" className="post-thumbnail"><img src="images/post-2.jpg" alt="Image" className="img-fluid"/></a>
-							<div className="post-content-entry">
-								<h3><a href="#">How To Keep Your Furniture Clean</a></h3>
-								<div className="meta">
-									<span>by <a href="#">Robert Fox</a></span> <span>on <a href="#">Dec 15, 2021</a></span>
-								</div>
-							</div>
-						</div>
-					</div>
-
-					<div className="col-12 col-sm-6 col-md-4 mb-4 mb-md-0">
-						<div className="post-entry">
-							<a href="#" className="post-thumbnail"><img src="images/post-3.jpg" alt="Image" className="img-fluid"/></a>
-							<div className="post-content-entry">
-								<h3><a href="#">Small Space Furniture Apartment Ideas</a></h3>
-								<div className="meta">
-									<span>by <a href="#">Kristin Watson</a></span> <span>on <a href="#">Dec 12, 2021</a></span>
-								</div>
-							</div>
-						</div>
-					</div>
-
-				</div>
-			</div>
-		</div>
-		{/* End Blog Section */}
-        </>
-    )
-}
+          {posts.docs?.length > 0 && (
+            <div className="row">
+              {posts.docs?.map((post) => (
+                <div className="col-sm-4">
+                  <PostCard post={post} linkToPostPage={true} stackPostImage={true} />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+      {/* End Blog Section */}
+    </>
+  );
+};

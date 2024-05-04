@@ -25,9 +25,11 @@ export const LoginUser = () => {
 
   if(authService.data){
     const token = authService.data.data?.token
+    const user = authService.data.data?.user;
     token && localStorage.setItem("token", token)
-    const lt = localStorage.getItem("token");
-    navigate("/")
+    user && localStorage.setItem("user", JSON.stringify(user))
+
+    navigate(`/user/profile/${user?.userId}`)
 }
   const inputFields: LoginDTO = {
     email: "",
@@ -74,14 +76,7 @@ export const LoginUser = () => {
           </div>
         </div>
         <div className="col-sm-3">
-          <Popover
-          displayElement={ (<i>toggle my popover</i>)}
-          buttons={[
-            {buttonText: "big me", handler: () => "me"},
-            {buttonText: "big me", handler: () => "me"}
-          ]}
-          ariaLabel="my popover"
-          />
+         
           
         </div>
       </div>

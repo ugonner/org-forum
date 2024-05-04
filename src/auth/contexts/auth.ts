@@ -2,7 +2,7 @@ import { useMutation } from "react-query"
 import { requestApi } from "../../generics/contexts/api/base"
 import { ICreateUser, LoginDTO, RequestForgotPasswordTokenDTO, ResetForgotPasswordDTO, ResetPasswordDTO } from "../typings/auth"
 import { IGenericResponse } from "../../generics/typings/typngs"
-import { UserDTO } from "../../user/typings"
+import { IUserDTO, UserDTO } from "../../user/typings/user"
 
 export const createUser = async (userData: ICreateUser): Promise<IGenericResponse<UserDTO>> => {
     const res = await  requestApi({
@@ -44,8 +44,15 @@ export const verifyUser = async (userData: {email: string; token: string;}): Pro
     })
 }
 
-
-export const loginUser = async (req: LoginDTO): Promise<IGenericResponse<{email: string; token: string;}>> => {
+export interface ILoggedInUser{
+    email: string;
+    userId: string;
+    firstName: string;
+    lastName: string;
+    role: string[];
+    avatar: string;
+}
+export const loginUser = async (req: LoginDTO): Promise<IGenericResponse<{email: string; token: string; user: ILoggedInUser}>> => {
     const res = await requestApi({
         url: `/auth/login`,
         method: "POST",

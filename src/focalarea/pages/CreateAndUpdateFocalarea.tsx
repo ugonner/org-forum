@@ -38,9 +38,6 @@ useEffect(() => {
   const inputFields: IFocalareaDTO = {
     focalareaName: "",
     detail: "",
-    contactEmail: "",
-    contactPhoneNumber: "",
-    contactAddress: "",
   };
 
 

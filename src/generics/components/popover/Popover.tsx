@@ -1,5 +1,6 @@
 import { ReactNode, useState } from "react";
 import "./popover.css";
+import { useModalContextStore } from "../modals/ModalContextProvider";
 
 interface IPopoverButton {
   buttonText: string;
@@ -10,40 +11,43 @@ export interface IPopoverProps {
   buttons: IPopoverButton[];
   displayElement: ReactNode;
   ariaLabel: string;
+  showPopoverId: string;
 }
 
 export const Popover = (prop: IPopoverProps) => {
-  const [popoverToggle, setPopoverToggle] = useState(false);
+  const {showPopoverId, setShowPopoverId} = useModalContextStore()
   const callHandler = (handler: Function) => {
     handler();
-    setPopoverToggle(false);
+    setShowPopoverId("");
   };
 
+  
   return (
     <div className="popover-top">
       <div className="popover-section row">
-        {popoverToggle && (
+        {
+        showPopoverId === prop.showPopoverId && (
           <div
             className="popover-container"
             aria-controlledBy="#popover-display-element"
           >
-            <ul className="nav navbar navbar-nav">
+            <div className="popover-container">
 
             {prop.buttons.map((btn) => (
-              <li
-                className="btn btn-transparent"
+              <div
+                className="w-100 mx-2 p-2"
                 onClick={() => callHandler(btn.handler)}
                 role="button"
               >
                 {btn.buttonText}
-              </li>
+              </div>
             ))}
-            </ul>
+            </div>
           </div>
         )}
         <div
           className="popover-display-element"
-          onClick={() => setPopoverToggle(!popoverToggle)}
+          onClick={() => setShowPopoverId(prop.showPopoverId)}
           aria-controls="#popover-container"
           role="button"
           aria-label={prop.ariaLabel ?? ""}

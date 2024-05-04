@@ -14,43 +14,49 @@ import {
   allRoutes,
   userRoutes,
 } from "./generics/contexts/routing/routes";
-import { AuthProvider } from "./generics/contexts/routing/AuthContext";
+import { AuthProvider } from "./auth/contexts/AuthContext";
 import { QueryClient, QueryClientProvider } from "react-query";
+import { ModalContextProvider } from "./generics/components/modals/ModalContextProvider";
+import { ThemeContextProvider } from "./generics/contexts/theme/theme";
 
 function App() {
   const queryClient = new QueryClient();
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" Component={HomePage} />
-            <Route path="/register" element={<RegisterUser />} />
+      <ThemeContextProvider>
+        <AuthProvider>
+          <ModalContextProvider>
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" Component={HomePage} />
+                <Route path="/register" element={<RegisterUser />} />
 
-            <Route path="/" element={<AuthLayout />}>
-              {userRoutes.map((aRoute, i) => (
-                <Route key={i} path={`/${aRoute.appDomain}`}>
-                  <Route
-                    path={`/${aRoute.appDomain}/${aRoute.path}`}
-                    element={<aRoute.element {...aRoute.props} />}
-                  />
+                <Route path="/" element={<AuthLayout />}>
+                  {userRoutes.map((aRoute, i) => (
+                    <Route key={i} path={`/${aRoute.appDomain}`}>
+                      <Route
+                        path={`/${aRoute.appDomain}/${aRoute.path}`}
+                        element={<aRoute.element {...aRoute.props} />}
+                      />
+                    </Route>
+                  ))}
                 </Route>
-              ))}
-            </Route>
 
-            <Route path="/admin" element={<AdminLayout />}>
-              {adminRoutes.map((aRoute, i) => (
-                <Route key={i} path={`/admin/${aRoute.appDomain}`}>
-                  <Route
-                    path={`/admin/${aRoute.appDomain}/${aRoute.path}`}
-                    element={<aRoute.element {...aRoute.props} />}
-                  />
+                <Route path="/admin" element={<AdminLayout />}>
+                  {adminRoutes.map((aRoute, i) => (
+                    <Route key={i} path={`/admin/${aRoute.appDomain}`}>
+                      <Route
+                        path={`/admin/${aRoute.appDomain}/${aRoute.path}`}
+                        element={<aRoute.element {...aRoute.props} />}
+                      />
+                    </Route>
+                  ))}
                 </Route>
-              ))}
-            </Route>
-          </Routes>
-        </BrowserRouter>
-      </AuthProvider>
+              </Routes>
+            </BrowserRouter>
+          </ModalContextProvider>
+        </AuthProvider>
+      </ThemeContextProvider>
     </QueryClientProvider>
   );
 }

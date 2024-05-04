@@ -2,23 +2,23 @@
 // <button type="button" className="btn btn-primary" data-toggle="modal" data-target="#exampleModalLong">
 //   Launch demo modal
 // </button>
-import "./modal.css"
+import { useModalContextStore } from "./ModalContextProvider";
+import "./modal.css";
 
 import React, { useState } from "react";
 
 export interface IComponentModalProps {
   modalTitle?: string;
   modalBody: React.ReactNode;
-  isOpen: boolean;
-  closeModal: Function
+  showModalText: string;
 }
 
 export const ComponentModal = (prop: IComponentModalProps) => {
-  const [modalToggle, setModalToggle] = useState(true);
-
+  const { showModalText, setShowModalText } = useModalContextStore();
   return (
     <div>
-      ({(prop.isOpen) && (
+      (
+      {showModalText === prop.showModalText && (
         <div
           className="comonent-modal bg-dark text-light col-sm-6 p-2"
           id="exampleModalLong"
@@ -32,17 +32,21 @@ export const ComponentModal = (prop: IComponentModalProps) => {
                 <h5 className="modal-title" id="exampleModalLongTitle">
                   {prop.modalTitle ?? ""}
                 </h5>
-                <button
-                  type="button"
-                  className="close"
-                  data-dismiss="modal"
-                  aria-label="Close"
-                  onClick={() => prop.closeModal()}
-                >
-                  <span aria-hidden="true">&times;</span>
-                </button>
               </div>
-              <div className="modal-body">{prop.modalBody ?? ""}</div>
+              <div className="modal-body">
+                <div style={{textAlign: "right"}}>
+                  <span
+                    role="button"
+                    className="close"
+                    data-dismiss="modal"
+                    aria-label="Close"
+                    onClick={() => setShowModalText("")}
+                  >
+                    <span aria-hidden="true">&times;</span>
+                  </span>
+                </div>
+                {prop.modalBody ?? ""}
+              </div>
             </div>
           </div>
         </div>

@@ -6,7 +6,8 @@ export enum AppDomains {
     FOCALAREA = "focalarea",
     POST = "post",
     USER = "user",
-    AUTH = "auth"
+    AUTH = "auth",
+    CATEGORY = "category"
 }
 
 export interface IRouteGroup {

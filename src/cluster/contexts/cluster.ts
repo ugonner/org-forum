@@ -4,6 +4,7 @@ import { IClusterDTO, IUpdateClusterDTO } from "../typings/cluster";
 import { IGenericResponse, QueryReturn } from "../../generics/typings/typngs";
 import { requestApi } from "../../generics/contexts/api/base";
 
+export const defaultClusterImageUrl = `/images/group/group.png`;
 export const createCluster = async (payload: IClusterDTO): Promise<IGenericResponse<IClusterDTO>> => {
     const res = await  requestApi({
         url: `/cluster`,
