@@ -14,6 +14,7 @@ import { toast } from "react-toastify";
 import { getFocalarea } from "../../contexts/focalarea";
 import { Query } from "react-query";
 import { addOrRemoveUserFromGroup, getUsers } from "../../../user/contexts/api/user";
+import { useModalContextStore } from "../../../generics/components/modals/ModalContextProvider";
 
 export const Focalarea = () => {
   const navParam = useParams();
@@ -25,16 +26,21 @@ export const Focalarea = () => {
   const [isMember, setIsMember] = useState(false);
   const localUserString = localStorage.getItem("user");
   const localUser = JSON.parse(localUserString as string);
+  const {setLoader} = useModalContextStore();
   useEffect(() => {
     (async () => {
       try {
+        
+      setLoader({showLoader: true, loaderText: "loading data"})
         const focalareaRes = await getFocalarea(`${focalareaId}`);
+        setLoader({showLoader: false, loaderText: ""})
         const query = {
           focalareas: `${focalareaId}`,
           _page: 1,
           _orderBy: "createdAt",
           _order: "DESC",
         };
+        setLoader({showLoader: true, loaderText: "posts comming"})
         const postsRes = await getPosts({ ...query });
         const usersRes = await getUsers({ ...query });
         postsRes && setPosts(postsRes);
@@ -43,7 +49,9 @@ export const Focalarea = () => {
 
         usersRes.docs.find((user) => user._id == localUser.userId) &&
           setIsMember(true);
+          setLoader({showLoader: false, loaderText: ""})
       } catch (error) {
+        setLoader({showLoader: false, loaderText: ""})
         toast.error((error as any).message);
       }
     })();

@@ -9,6 +9,10 @@ import { TextInput } from "../../generics/components/form/TextInput";
 import { IFileAndObjectUrl } from "../../generics/file/components/MultipleFiles";
 import { deleteFile, selectMultipleFiles, uploadFiles } from "../../generics/file/utils/filehooks";
 import { MultipleFiles } from "../../generics/file/components/MultipleFiles";
+import { useModalContextStore } from "../../generics/components/modals/ModalContextProvider";
+import { toast } from "react-toastify";
+import { IGenericResponse } from "../../generics/typings/typngs";
+import { error } from "console";
 
 interface ICreateFocalareaProp {
   focalareaId: string | "create"
@@ -19,18 +23,21 @@ export const CreateOrUpdateFocalarea = (prop: ICreateFocalareaProp) => {
   const [focalareaData, setFocalareaData] = useState({} as IFocalareaDTO);
   const [selectedFiles, setSelectedFiles] = useState([] as IFileAndObjectUrl[])
   const [responseData, setResponseData] = useState({} as IResponseMessageProp);
-  
+  const {setLoader} = useModalContextStore()
   //let initialData: IFocalareaDTO = {} as IFocalareaDTO;
 useEffect(() => {
   ( async () => {
     try{
-      let initData;
+      setLoader({showLoader: true, loaderText: "loading data"})
       const focalareaId = prop.focalareaId
       if(viewPurpose === "Edit" && focalareaId){
         const res = await getFocalarea(focalareaId)
         setFocalareaData(res);
       }
+      setLoader({showLoader: false, loaderText: ""})
     }catch(error){
+      setLoader({showLoader: false, loaderText: ""})
+      toast.error((error as IGenericResponse<unknown>).message);
       console.log("Error fetching initial data", error)
     }
   })()
@@ -49,27 +56,19 @@ useEffect(() => {
   //Dispatch<SetStateAction<IFileAndObjectUrl[]>>>
   async function createNewFocalarea(e: FormEvent<HTMLFormElement>, selectedFiles: IFileAndObjectUrl[]): Promise<null> {
     try {
-      setResponseData({ isLoading: true, isError: false });
+      setLoader({showLoader: true, loaderText: "saving"})
       
       const uploadfilesRes = await uploadFiles(e, selectedFiles)
       if(uploadfilesRes && Array.isArray(uploadfilesRes)){
         focalareaData.avatar = uploadfilesRes[0].url
       }
       const res = viewPurpose === "Edit" ? await updateFocalarea({...focalareaData, focalareaId: (prop.focalareaId as string)}) : await createFocalarea(focalareaData);
-      setResponseData({
-        isLoading: false,
-        isError: false,
-        data: res.data,
-        error: null,
-      });
+      
+      setLoader({showLoader: false, loaderText: ""})
       return null;
-    } catch (err) {
-      setResponseData({
-        isLoading: false,
-        isError: true,
-        data: null,
-        error: err,
-      });
+    } catch (error) {
+      setLoader({showLoader: false, loaderText: ""})
+      toast.error((error as IGenericResponse<unknown>).message);
       return null;
     }
   }
@@ -77,12 +76,7 @@ useEffect(() => {
   return (
     <div className="form-group">
       <div>
-        <ResponseMessage
-          isLoading={responseData.isLoading}
-          isError={responseData.isError}
-          data={responseData.data}
-          error={responseData.error}
-        />
+       
         <div>
           {Object.keys(inputFields).map((field, i) => {
             return  (

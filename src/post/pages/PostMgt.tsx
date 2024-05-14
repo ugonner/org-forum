@@ -39,6 +39,7 @@ export const PostMgt = () => {
     { label: "Last updated Date", value: "updatedAt" },
   ];
 
+  const {setLoader} = useModalContextStore()
   const {
     data: posts,
     error,
@@ -50,9 +51,8 @@ export const PostMgt = () => {
     _order: order,
   });
 
-  if(posts){
-    console.log((posts.docs[3]), "post user" )
-  }
+  isLoading ? setLoader({showLoader: true}) : setLoader({showLoader: false});
+  
 
   const setUpModal = (postId: string) => {
     setPostId(postId);
@@ -89,12 +89,7 @@ export const PostMgt = () => {
   }, [])
   return (
     <div>
-      <ResponseMessage
-        isLoading={isLoading}
-        isError={isError}
-        error={error}
-        data={posts}
-      />
+     
 
       <div className="row">
         <div className="col-sm-3">

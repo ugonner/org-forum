@@ -6,6 +6,7 @@ import { getFocalareas } from "../../focalarea/contexts/focalarea";
 import { useModalContextStore } from "../../generics/components/modals/ModalContextProvider";
 import { ComponentModal } from "../../generics/components/modals/ComponentModal";
 import { useNavigate } from "react-router-dom";
+import { useThemeContextStore } from "../../generics/contexts/theme/theme";
 export interface IThematicArea {
   focalareaName: string;
   detail: string;
@@ -140,11 +141,12 @@ export interface IThematicAreaCardProp {
 }
 export const ThematicAreaCard = (prop: IThematicAreaCardProp) => {
   const navigate = useNavigate();
+  const {themeCssClass} = useThemeContextStore()
 
   return (
     <div className="col-6 col-md-6">
       <div 
-      className="feature"
+      className={`feature ${themeCssClass}`}
       role="button"
       onClick={() => {
         prop.area._id && navigate(`/focalarea/view/${prop.area._id}`)
@@ -153,8 +155,8 @@ export const ThematicAreaCard = (prop: IThematicAreaCardProp) => {
         <div className="icon">
           <img src="images/truck.svg" alt="Image" className="imf-fluid" />
         </div>
-        <h3 className="text-light">{prop.area.focalareaName}</h3>
-        <p className="text-light">{prop.area.detail}</p>
+        <h3 className={`${themeCssClass}`}>{prop.area.focalareaName}</h3>
+        <p className={`${themeCssClass}`}>{prop.area.detail}</p>
       </div>
     </div>
   );

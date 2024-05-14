@@ -35,9 +35,10 @@ import { IMedia } from "../../../generics/file/typings/media";
 import { toast } from "react-toastify";
 import { buildSearchObj } from "../../../generics/utils";
 import { DisplayMediaFiles } from "../../../generics/file/components/DisplayMediaFiles";
-import { IDeleteAttachmentFilesDTO } from "../../../generics/typings/typngs";
+import { IDeleteAttachmentFilesDTO, IGenericResponse } from "../../../generics/typings/typngs";
 import { IFocalareaDTO } from "../../../focalarea/typings/focalarea";
 import { ICategoryDTO } from "../../../category/typings/category";
+import { useModalContextStore } from "../../../generics/components/modals/ModalContextProvider";
 
 export const CreatePostInStages = () => {
   const navParam = useParams();
@@ -63,11 +64,15 @@ export const CreatePostInStages = () => {
   const [selectedAttachmentFiles, setSelectedAttachmentFiles] = useState(
     [] as IFileAndObjectUrl[]
   );
+  const {setLoader} = useModalContextStore()
   const navigate = useNavigate();
   useEffect(() => {
     (async () => {
+      try{
+        
       if (/create/i.test(`${postId}`)) return;
 
+      setLoader({showLoader: true, loaderText: "getting post data"})
       const postRes = await getPost(`${postId}`);
 
       if (
@@ -75,9 +80,16 @@ export const CreatePostInStages = () => {
         postRes.user?._id != localUser.userId
       ) {
         toast.error("you are trying to update a post you don't own");
+       
+      setLoader({showLoader: false, loaderText: ""})
         navigate(`/auth/login`);
       }
       setPost(postRes);
+      setLoader({showLoader: false, loaderText: ""})
+      }catch(error){
+        setLoader({showLoader: false, loaderText: ""})
+        toast.error((error as IGenericResponse<unknown>).message)
+      }
     })();
   }, []);
 
@@ -150,19 +162,26 @@ export const CreatePostInStages = () => {
   ];
     
   const deletePostMediaFiles = async (fileUrls: string[]) => {
-    const payload: IDeleteAttachmentFilesDTO = {
-      attachmentUrls: fileUrls,
-      primaryId: `${post._id}`,
-      fromFeature: "post",
-    };
-    await deletePostAttachmentFiles(payload);
-    toast.success("post attachments deleted");
-    setPost((prev) => ({
-      ...post,
-      attachment: prev.attachment?.filter(
-        (at) => !fileUrls.includes(at.mediaUrl)
-      ),
-    }));
+    try{
+      const payload: IDeleteAttachmentFilesDTO = {
+        attachmentUrls: fileUrls,
+        primaryId: `${post._id}`,
+        fromFeature: "post",
+      };
+      setLoader({showLoader: true, loaderText: "DELETING ATTACHMENT"})
+      await deletePostAttachmentFiles(payload);
+      toast.success("post attachments deleted");
+      setPost((prev) => ({
+        ...post,
+        attachment: prev.attachment?.filter(
+          (at) => !fileUrls.includes(at.mediaUrl)
+        ),
+      }));
+      setLoader({showLoader: false, loaderText: ""});
+    }catch(error){
+      setLoader({showLoader: false, loaderText: ""});
+      toast.error((error as IGenericResponse<unknown>).message)
+    }
   };
 
 
@@ -171,6 +190,7 @@ export const CreatePostInStages = () => {
       if (selectedFiles.length < 1)
         toast.error("you must upload at least one picture for the post");
 
+      setLoader({showLoader: true, loaderText: "uploading files"});
       const res = await uploadFiles(
         {} as FormEvent<HTMLFormElement>,
         selectedFiles
@@ -185,6 +205,7 @@ export const CreatePostInStages = () => {
       }
       
       if (selectedAttachmentFiles.length > 0) {
+        setLoader({showLoader: true, loaderText: "uploading attachments"});
         const res = await uploadFiles(
           {} as FormEvent<HTMLFormElement>,
           selectedAttachmentFiles
@@ -219,6 +240,7 @@ export const CreatePostInStages = () => {
       if((post.categorys as ICategoryDTO[])[0]?._id){
         post.categorys = (post.categorys as ICategoryDTO[]).map((cluster) => `${cluster._id}`)
       }
+      setLoader({showLoader: true, loaderText: "updating post"});
         await updatePost({ ...post, socialpostId: postId });
       } else {
         ["clusters", "focalareas", "categorys"].forEach((f) => {
@@ -226,10 +248,13 @@ export const CreatePostInStages = () => {
             (post as unknown as { [key: string]: string[] })[f] = [`${searchQbj[f]}`];
           }
         });
+        setLoader({showLoader: true, loaderText: "creating post"});
         await createPost(post);
       }
+      setLoader({showLoader: false, loaderText: ""});
       navigate(`/post/posts/${search}`);
     } catch (error) {
+      setLoader({showLoader: false, loaderText: ""});
       toast.error((error as any).message);
     }
   };

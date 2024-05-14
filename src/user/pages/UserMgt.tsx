@@ -21,6 +21,7 @@ import { MessageUsers } from "./Message";
 import { AssignPosition } from "./AssignPosition";
 import { AssignRole } from "./AssignRoles";
 import { useThemeContextStore } from "../../generics/contexts/theme/theme";
+import { IGenericResponse } from "../../generics/typings/typngs";
 
 export const UserMgt = () => {
   const navigate = useNavigate();
@@ -34,6 +35,8 @@ export const UserMgt = () => {
   const [order, setOrder] = useState("-1");
   const [orderBy, setOrderBy] = useState("createdAt");
 
+  const {setLoader} = useModalContextStore()
+  
   const filterOptions: ISelectOption[] = [
     { label: "Published", value: "isPublished" },
   ];
@@ -56,6 +59,13 @@ export const UserMgt = () => {
     _orderBy: orderBy,
     _order: order,
   });
+
+  isLoading && setLoader({showLoader: true});
+  (!isLoading) && setLoader({showLoader: false});
+  if(isError){
+    setLoader({showLoader: false, loaderText: ""})
+    toast.error((error as IGenericResponse<unknown>).message)
+  }
 
 
   const setUpModal = (config: {modalName: string; userId: string; user?: IUserDTO;}) => {
@@ -97,20 +107,16 @@ export const UserMgt = () => {
 
   const updateUserStatus = async (userProperty: string, value: unknown) => {
     try{
-      toast.info("loading");
+      setLoader({showLoader: true, loaderText: "updating user"})
       await updateUserAdmin({[userProperty]: value, userId} as any)
+      setLoader({showLoader: false, loaderText: ""})
     }catch(error){
+      setLoader({showLoader: false, loaderText: ""})
       toast.error((error as any).message)
     }
   } 
   return (
     <div>
-      <ResponseMessage
-        isLoading={isLoading}
-        isError={isError}
-        error={error}
-        data={users}
-      />
 
       <div className="row">
         <div className="col-sm-3">

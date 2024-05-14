@@ -2,6 +2,7 @@
 // <button type="button" className="btn btn-primary" data-toggle="modal" data-target="#exampleModalLong">
 //   Launch demo modal
 // </button>
+import { useThemeContextStore } from "../../contexts/theme/theme";
 import { useModalContextStore } from "./ModalContextProvider";
 import "./modal.css";
 
@@ -15,12 +16,13 @@ export interface IComponentModalProps {
 
 export const ComponentModal = (prop: IComponentModalProps) => {
   const { showModalText, setShowModalText } = useModalContextStore();
+  const {themeCssClass} = useThemeContextStore();
   return (
     <div>
       (
       {showModalText === prop.showModalText && (
         <div
-          className="comonent-modal bg-dark text-light col-sm-6 p-2"
+          className={`comonent-modal col-sm-6 p-2 ${themeCssClass}`}
           id="exampleModalLong"
           role="dialog"
           aria-labelledby="exampleModalLongTitle"
@@ -28,13 +30,7 @@ export const ComponentModal = (prop: IComponentModalProps) => {
         >
           <div className="modal-dialog" role="document">
             <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title" id="exampleModalLongTitle">
-                  {prop.modalTitle ?? ""}
-                </h5>
-              </div>
-              <div className="modal-body">
-                <div style={{textAlign: "right"}}>
+            <div style={{textAlign: "right"}}>
                   <span
                     role="button"
                     className="close"
@@ -42,9 +38,16 @@ export const ComponentModal = (prop: IComponentModalProps) => {
                     aria-label="Close"
                     onClick={() => setShowModalText("")}
                   >
-                    <span aria-hidden="true">&times;</span>
+                    <span className="fs-1" aria-hidden="true">&times;</span>
                   </span>
                 </div>
+                
+              <div className="modal-header">
+                <h5 className="modal-title" id="exampleModalLongTitle">
+                  {prop.modalTitle ?? ""}
+                </h5>
+              </div>
+              <div className="modal-body">
                 {prop.modalBody ?? ""}
               </div>
             </div>

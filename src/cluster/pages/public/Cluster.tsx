@@ -14,6 +14,7 @@ import { toast } from "react-toastify";
 import { getCluster } from "../../contexts/cluster";
 import { Query } from "react-query";
 import { addOrRemoveUserFromGroup, getUsers } from "../../../user/contexts/api/user";
+import { useModalContextStore } from "../../../generics/components/modals/ModalContextProvider";
 
 export const Cluster = () => {
   const navParam = useParams();
@@ -25,9 +26,11 @@ export const Cluster = () => {
   const [isMember, setIsMember] = useState(false);
   const localUserString = localStorage.getItem("user");
   const localUser = JSON.parse(localUserString as string);
+  const {setLoader} = useModalContextStore()
   useEffect(() => {
     (async () => {
       try {
+        setLoader({showLoader: true, loaderText: "getting cluster"})
         const clusterRes = await getCluster(`${clusterId}`);
         const query = {
           clusters: `${clusterId}`,
@@ -35,6 +38,7 @@ export const Cluster = () => {
           _orderBy: "createdAt",
           _order: "DESC",
         };
+        setLoader({showLoader: true, loaderText: "posts and activities coming"})
         const postsRes = await getPosts({ ...query });
         const usersRes = await getUsers({ ...query });
         postsRes && setPosts(postsRes);
@@ -43,7 +47,9 @@ export const Cluster = () => {
 
         usersRes.docs.find((user) => user._id == localUser.userId) &&
           setIsMember(true);
+          setLoader({showLoader: false, loaderText: ""})
       } catch (error) {
+        setLoader({showLoader: false, loaderText: ""})
         toast.error((error as any).message);
       }
     })();

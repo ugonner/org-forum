@@ -21,21 +21,14 @@ import {
   IFileAndObjectUrl,
   IMultipleFilesProps,
 } from "../../generics/file/components/MultipleFiles";
-import {
-  deleteFile,
-  selectMultipleFiles,
-  uploadFiles,
-} from "../../generics/file/utils/filehooks";
-import { createUser } from "../../auth/contexts/auth";
-import { ICreateUser } from "../../auth/typings/auth";
-import {
-  FormDisplay,
-  IInputFieldWithPageNumber,
-} from "../../generics/components/form/FormDisplay";
+import { useModalContextStore } from "../../generics/components/modals/ModalContextProvider";
 
 export const UserProfile = () => {
   const navParam = useParams();
   const navigate = useNavigate();
+
+  const {setLoader} = useModalContextStore()
+
   const userId = navParam.userId;
   const localUserString = localStorage.getItem("user");
   const localUser = localUserString ? JSON.parse(localUserString) : null;
@@ -62,130 +55,6 @@ export const UserProfile = () => {
     setUser({ ...user, [name]: value });
   };
 
-  const userInputFields: IInputFieldWithPageNumber[] = [
-    {
-      pageNumber: 5,
-      inputType: "file",
-      inputProp: {
-        selectedFiles,
-        setSelectedFiles,
-        selectMultipleFiles: selectMultipleFiles,
-        deleteFile: deleteFile,
-        hideSubmitButton: true,
-        fileInputAccept: "image/*",
-        fileLabelText: "upload profile image",
-        fileInputId: "user-profile-image",
-      } as IMultipleFilesProps,
-    },
-    {
-      pageNumber: 6,
-      inputType: "text",
-      inputProp: {
-        inputLabel: "firstName",
-        inputName: "firstName",
-        inputType: "text",
-        required: true,
-        value: user.firstName,
-        placeholder: "firstName",
-        cssClass: "",
-        handleChange: handleTextInputChange,
-      } as ITextInput,
-    },
-
-    {
-      pageNumber: 6,
-      inputType: "text",
-      inputProp: {
-        inputLabel: "lastName",
-        inputName: "lastName",
-        inputType: "text",
-        required: true,
-        value: user.lastName,
-        placeholder: "lastName",
-        cssClass: "",
-        handleChange: handleTextInputChange,
-      } as ITextInput,
-    },
-
-    {
-      pageNumber: 7,
-      inputType: "tel",
-      inputProp: {
-        inputLabel: "phoneNumber",
-        inputName: "phoneNumber",
-        inputType: "text",
-        required: true,
-        value: user.phoneNumber,
-        placeholder: "phoneNumber",
-        cssClass: "",
-        handleChange: handleTextInputChange,
-      } as ITextInput,
-    },
-
-    {
-      pageNumber: 7,
-      inputType: "text",
-      inputProp: {
-        inputLabel: "address",
-        inputName: "address",
-        inputType: "text",
-        required: true,
-        value: user.address,
-        placeholder: "address",
-        cssClass: "",
-        handleChange: handleTextInputChange,
-      } as ITextInput,
-    },
-    {
-      pageNumber: 7,
-      inputType: "select",
-      inputProp: {
-        selectOptions: initGenderOptions,
-        isMulti: false,
-        handleChange: (option: ISelectOption) => {
-          //setGenderOptions(option)
-          setUser({ ...user, gender: option.value });
-        },
-        label: "gender",
-        uniqueId: "gender",
-      } as ISelectProp,
-    },
-
-    {
-      pageNumber: 7,
-      inputType: "date",
-      inputProp: {
-        selectedDate: new Date(),
-        handleChange: (date: Date) => {
-          const dateValue = new Date(date.getTime())
-            .toISOString()
-            .split("T")[0];
-          setUser({ ...user, dateOfBirth: dateValue });
-        },
-        label: "Date Of Birth",
-        uniqueId: "dateOfBirth",
-      } as IDatePickerInputProp,
-    },
-
-    {
-      pageNumber: 8,
-      inputType: "select",
-      inputProp: {
-        selectOptions: clusterOptions,
-        isMulti: true,
-        handleChange: (options: ISelectOption[]) => {
-          setSelectedClusterOptions([...options]);
-          setUser({
-            ...user,
-            clusters: options.map((opt) => opt.value) as string[],
-          });
-        },
-        value: selectedClusterOptions,
-        label: "Disability Clusters",
-        uniqueId: "clusters",
-      } as ISelectProp,
-    },
-  ];
 
   const [page, setPage] = useState(1);
   const [tabs, setTabs] = useState([
@@ -210,71 +79,20 @@ export const UserProfile = () => {
       iconClass: "fa fa-group"
     },
   ] as { pageNumber: number; label: string; iconClass: string; }[]);
-  const editTabs: { pageNumber: number; label: string; iconClass: string; }[] = [
-    {
-      pageNumber: 5,
-      label: "Edit Basic",
-      iconClass: "fa fa-user"
-    },
-    {
-      pageNumber: 6,
-      label: "Edit Bio",
-      iconClass: "fa fa-vcard"
-    },
-    {
-      pageNumber: 7,
-      label: "Edit Groups",
-      iconClass: "fa fa-users"
-    },
-    {
-      pageNumber: 8,
-      label: "Edit DP",
-      iconClass: "fa fa-file-image"
-    },
-  ];
 
-  const submitUser = async () => {
-    try {
-      const res = await uploadFiles({} as any, selectedFiles);
-      if (res?.length) {
-        user.avatar = res[0].secureUrl;
-      }
-      if (userId && !/create/i.test(userId)) {
-        await updateUserAdmin({ ...user, userId });
-      } else {
-        await createUser(user as ICreateUser);
-      }
-    } catch (error) {
-      toast.error((error as any).message);
-    }
-  };
-  const [message, setMessage] = useState("");
-
+  
   const [editProfile, setEditProfile] = useState(false);
 
   useEffect(() => {
     (async () => {
-      const userRes = await getUser(`${userId}`);
-      setUser(userRes);
-      //(localUser && `${localUser?.userId}` === `${userId}` ) && setTabs([...tabs, ...editTabs]);
-      const clustersRes = await getClusters({});
-
-      const selectOptions: ISelectOption[] = [];
-      const allOptions: ISelectOption[] = [];
-      clustersRes.docs.forEach((c) => {
-        const cOption: ISelectOption = {
-          label: c.clusterName,
-          value: `${c._id}`,
-        };
-        const isSelected = (userRes?.clusters as IClusterDTO[])?.find(
-          (uc) => c._id === (uc._id ?? uc)
-        );
-        if (isSelected) {
-          selectOptions.push(cOption);
-        }
-      });
-      setClusterOptions(allOptions);
-      setSelectedClusterOptions(selectOptions);
+      try{
+        setLoader({showLoader: true, loaderText: "loading user data, please wait"})
+        const userRes = await getUser(`${userId}`);
+        setLoader({showLoader: false, loaderText: ""})
+        setUser(userRes);
+      }catch(error){
+        setLoader({showLoader: false, loaderText: ""})
+      }
     })();
   }, []);
 
@@ -310,16 +128,15 @@ export const UserProfile = () => {
             onClick={() => setPage(tab.pageNumber)}
             >
               
-            {tab.pageNumber === 1 || tab.pageNumber === 5 ? (
+            {tab.pageNumber === 1 ? (
               <img
                 src={user?.avatar}
                 className="img-fluid img-responsive"
                 alt="user"
               />
             ) : (
-              <span className="d1">{tab.pageNumber}</span>
+              <></>
             )}
-            <br />
             <span
               className={`d6 ${tab.iconClass}`}
             ></span>
@@ -401,86 +218,11 @@ export const UserProfile = () => {
               </table>
             </div>
           )}
-          {editProfile && page === 5 && (
-            <div className="row">
-              <div className="col-sm-3">
-                <img
-                  src={user?.avatar ?? defaultUserImageUrl}
-                  alt="user"
-                  className="img-fluid"
-                />
-              </div>
-              <div className="col-sm-9">
-                <FormDisplay
-                  inputFields={userInputFields.filter(
-                    (f) => f.pageNumber === 5
-                  )}
-                  pageLayoutColumns={2}
-                  pageMessage={pageMessage}
-                  pageNumber={1}
-                />
-              </div>
-            </div>
-          )}
 
-          {editProfile && page === 6 && (
-            <FormDisplay
-              inputFields={userInputFields.filter((f) => f.pageNumber === 6)}
-              pageLayoutColumns={2}
-              pageMessage={pageMessage}
-              pageNumber={2}
-            />
-          )}
+          
 
-          {editProfile && page === 7 && (
-            <FormDisplay
-              inputFields={userInputFields.filter((f) => f.pageNumber === 7)}
-              pageLayoutColumns={2}
-              pageMessage={pageMessage}
-              pageNumber={3}
-            />
-          )}
-
-          {editProfile && page === 8 && (
-            <FormDisplay
-              inputFields={userInputFields.filter((f) => f.pageNumber === 8)}
-              pageLayoutColumns={2}
-              pageMessage={pageMessage}
-              pageNumber={3}
-            />
-          )}
         </div>
 
-        {page > 4 && (
-          <div className="row">
-            <div className="col-4">
-              <button
-                className="w-100 btn btn-primary"
-                onClick={() => setPage(page === 1 ? 1 : page - 1)}
-              >
-                {page === 1 ? "start" : "Previos"}
-              </button>
-            </div>
-            <div className="col-4">
-              <button
-                className="w-100 btn"
-                onClick={() => {
-                  submitUser();
-                }}
-              >
-                save
-              </button>
-            </div>
-            <div className="col-4">
-              <button
-                className="w-100 btn btn-primary"
-                onClick={() => setPage(page + 1)}
-              >
-                Continue
-              </button>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

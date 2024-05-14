@@ -16,17 +16,21 @@ export const AssignRole = (prop: IAssignRoleProp) => {
     const [selectedRoleOptions, setSelectedRoleOptions] = useState(prop.user.roles?.map((role) => ({label: role, value: role})) as ISelectOption[])
     const navigate = useNavigate()
     const {setShowModalText} = useModalContextStore()
+    const {setLoader} = useModalContextStore()
     const updateUserRole = async () => {
         try{
-            toast.info("updating")
             const payload = {
                 userId: `${prop.user._id}`,
                 roles
             }
+            
+        setLoader({showLoader: true, loaderText: ""})
             await updateUserAdmin(payload as unknown as IUpdateUserDTO)
             toast.success("user roles updated successfuly")
             setShowModalText("");
+            setLoader({showLoader: false, loaderText: ""})
         }catch(error){
+            setLoader({showLoader: false, loaderText: ""})
             toast.error((error as any).message)
         }
     }

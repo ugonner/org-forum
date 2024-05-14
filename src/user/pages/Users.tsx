@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react"
-import { QueryReturn } from "../../generics/typings/typngs"
+import { IGenericResponse, QueryReturn } from "../../generics/typings/typngs"
 import { IUserDTO } from "../typings/user"
 import { User } from "./User"
 import { getUsers, useGetUsersQuery } from "../contexts/api/user"
 import { useLocation } from "react-router-dom"
+import { useModalContextStore } from "../../generics/components/modals/ModalContextProvider"
+import { toast } from "react-toastify"
 
 export const Users = () => {
     const { search } = useLocation();
@@ -23,11 +25,20 @@ export const Users = () => {
     const [queryPayload, setQueryPayload] = useState({...searchQuery, _page, _orderBy: "createdAt", _order: "DESC"} as {[key: string]: string | number})
     //const {data: users, error} = useGetUsersQuery(queryPayload);
     const [users, setUsers] = useState({} as QueryReturn<IUserDTO>)
+    const {setLoader} = useModalContextStore()
     useEffect(() => {
         (
             async () => {
-                const usersRes = await getUsers(queryPayload);
-                setUsers(usersRes);
+                try{
+                    setLoader({showLoader: true, loaderText: "fetching users, please wait"});
+
+                    const usersRes = await getUsers(queryPayload);
+                    setUsers(usersRes);
+                    setLoader({showLoader: false, loaderText: ""})
+                }catch(error){
+                    setLoader({showLoader: false, loaderText: ""})
+                    toast.error((error as IGenericResponse<unknown>).message)
+                }
             }
         )()
     }, [queryPayload])

@@ -4,6 +4,7 @@ import { IClusterDTO } from "../../typings/cluster";
 import { toast } from "react-toastify";
 import { getClusters } from "../../contexts/cluster";
 import { ItemCard } from "../../../generics/components/ItemCard";
+import { useModalContextStore } from "../../../generics/components/modals/ModalContextProvider";
 
 export const Clusters = () => {
   const [clusters, setClusters] = useState({} as QueryReturn<IClusterDTO>);
@@ -15,12 +16,16 @@ export const Clusters = () => {
   } as {[key: string]: unknown});
   const [searchTerm, setSearchTerm] = useState("");
 
+  const {setLoader} = useModalContextStore()
   useEffect(() => {
     (async () => {
       try {
+        setLoader({showLoader: true, loaderText: "loading"})
         const clusterRes = await getClusters(queryPayload);
         setClusters(clusterRes);
+        setLoader({showLoader: false, loaderText: ""})
       } catch (error) {
+        setLoader({showLoader: false, loaderText: ""})
         toast((error as any).message);
       }
     })();

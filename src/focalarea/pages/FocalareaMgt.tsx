@@ -34,7 +34,7 @@ export const FocalareaMgt = () => {
     { label: "Date Created", value: "createdAt" },
     { label: "Last updated Date", value: "updatedAt" },
   ];
-
+const {setLoader} = useModalContextStore()
   const {
     data: focalareas,
     error,
@@ -45,6 +45,10 @@ export const FocalareaMgt = () => {
     _orderBy: orderBy,
     _order: order,
   });
+
+  isLoading ? 
+  setLoader({showLoader: true, loaderText: "loading data"}) : 
+  setLoader({showLoader: false, loaderText: ""})
 
   const [focalareaNoOfPostsArr, setFocalareaNoOfPostsArr ] = useState([] as number[])
   useEffect(() => {
@@ -85,12 +89,7 @@ export const FocalareaMgt = () => {
 
   return (
     <div>
-      <ResponseMessage
-        isLoading={isLoading}
-        isError={isError}
-        error={error}
-        data={focalareas}
-      />
+     
 
       <div className="row">
         <div className="col-sm-4">

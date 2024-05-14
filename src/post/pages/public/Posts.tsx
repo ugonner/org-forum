@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
-import { QueryReturn } from "../../../generics/typings/typngs";
+import { IGenericResponse, QueryReturn } from "../../../generics/typings/typngs";
 import { IPostDTO } from "../../typings/post";
 import { getPosts } from "../../contexts/post";
 import { PostCard } from "./PostCard";
 import { buildSearchObj } from "../../../generics/utils";
+import { useModalContextStore } from "../../../generics/components/modals/ModalContextProvider";
+import { toast } from "react-toastify";
 
 export const Posts = () => {
   const { search } = useLocation();
@@ -20,10 +22,19 @@ export const Posts = () => {
   } as { [key: string]: string | number });
   //const {data: posts, error} = useGetPostsQuery(queryPayload);
   const [posts, setPosts] = useState({} as QueryReturn<IPostDTO>);
+  const {setLoader} = useModalContextStore()
   useEffect(() => {
     (async () => {
+      try{
+        
+        setLoader({showLoader: true, loaderText: "fetching posts"});
       const postsRes = await getPosts(queryPayload);
       setPosts(postsRes);
+      setLoader({showLoader: false, loaderText: ""});
+      }catch(error){
+        setLoader({showLoader: false, loaderText: ""});
+        toast.error((error as IGenericResponse<unknown>).message)
+      }
     })();
   }, [queryPayload]);
 

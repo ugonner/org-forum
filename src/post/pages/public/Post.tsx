@@ -35,7 +35,7 @@ import {
 } from "../../../generics/components/form/FormDisplay";
 import { IMedia } from "../../../generics/file/typings/media";
 import { DisplayMediaFiles } from "../../../generics/file/components/DisplayMediaFiles";
-import { IAddOrRemoveFromGroupDTO, IDeleteAttachmentFilesDTO, QueryReturn } from "../../../generics/typings/typngs";
+import { IAddOrRemoveFromGroupDTO, IDeleteAttachmentFilesDTO, IGenericResponse, QueryReturn } from "../../../generics/typings/typngs";
 import { defaultUserImageUrl } from "../../../user/contexts/api/user";
 import { DisplayComments } from "./DisplayComments";
 import { CreateComment } from "./CreateComment";
@@ -46,7 +46,10 @@ import { PeopleFromEntity } from "../../../user/pages/People";
 export const Post = () => {
   const navParam = useParams();
   const postId = navParam.postId;
-  const navigate = useNavigate()
+  const navigate = useNavigate();
+  
+  const {setLoader} = useModalContextStore()
+  
   const localUserString = localStorage.getItem("user");
   const localUser = localUserString ? JSON.parse(localUserString) : null;
 
@@ -65,13 +68,17 @@ export const Post = () => {
   const [postComments, setPostComments] = useState({} as QueryReturn<IPostCommentDTO> );
   const [_page, set_Page] = useState(1);
   const [commentQueryPayload, setCommentQueryPayload] = useState({socialpost: postId, _page: 1, _orderBy: "createdAt", _order: "DESC"} as {[key: string]: string | number} )
+
   useEffect(() => {
     (
       async () => {
         try{
+          setLoader({showLoader: true, loaderText: "getting comments"});
           const postCommentsRes = await getPostComments(commentQueryPayload)
           setPostComments(postCommentsRes);
+          setLoader({showLoader: false, loaderText: ""});
         }catch(error){
+          setLoader({showLoader: false, loaderText: ""});
           toast.error((error as any).message)
         }
       }
@@ -102,25 +109,31 @@ export const Post = () => {
 
   
   const deletePostMediaFiles = async (fileUrls: string[]) => {
-    const payload: IDeleteAttachmentFilesDTO = {
-      attachmentUrls: fileUrls,
-      primaryId: `${post._id}`,
-      fromFeature: "post",
-    };
-    await deletePostAttachmentFiles(payload);
-    toast.success("post attachments deleted");
-    setPost((prev) => ({
-      ...post,
-      attachment: prev.attachment?.filter(
-        (at) => !fileUrls.includes(at.mediaUrl)
-      ),
-    }));
+    try{
+      const payload: IDeleteAttachmentFilesDTO = {
+        attachmentUrls: fileUrls,
+        primaryId: `${post._id}`,
+        fromFeature: "post",
+      };
+      setLoader({showLoader: true, loaderText: "deleting attachment files"});
+      await deletePostAttachmentFiles(payload);
+      
+      setLoader({showLoader: false, loaderText: ""});
+      toast.success("post attachments deleted");
+      setPost((prev) => ({
+        ...post,
+        attachment: prev.attachment?.filter(
+          (at) => !fileUrls.includes(at.mediaUrl)
+        ),
+      }));
+      setLoader({showLoader: false, loaderText: ""})
+    }catch(error){
+      setLoader({showLoader: false, loaderText: ""})
+      toast.error((error as IGenericResponse<unknown>).message)
+    }
   };
 
-  const [message, setMessage] = useState("");
-
-  const [editProfile, setEditProfile] = useState(false);
-
+  
   const [isLikingPost, setIsLikingPost] = useState(false);
 const {setShowModalText} = useModalContextStore()
 const [noOfLikes, setNoOfLikes] = useState(post?.noOfLikes ?? 0) 
@@ -139,11 +152,19 @@ const addOrRemoveFromComment = async (
 
   useEffect(() => {
     (async () => {
+    try{
+      setLoader({showLoader: true, loaderText: "getting post"})
       const postRes = await getPost(`${postId}`);
       setPost(postRes);
       setNoOfLikes(postRes.noOfLikes ?? 0)
       const isInPostLikedBy = postRes.likedBy?.includes(localUser.userId);
       setIsLikingPost(isInPostLikedBy ?? false)
+    
+      setLoader({showLoader: false, loaderText: ""})
+    }catch(error){
+      setLoader({showLoader: false, loaderText: ""})
+      toast.error((error as IGenericResponse<unknown>).message)
+    }
     })();
   }, []);
 

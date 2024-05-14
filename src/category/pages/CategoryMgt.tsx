@@ -34,6 +34,7 @@ export const CategoryMgt = () => {
     { label: "Date Created", value: "createdAt" },
     { label: "Last updated Date", value: "updatedAt" },
   ];
+  const {setLoader} = useModalContextStore()
 
   const {
     data: categorys,
@@ -45,6 +46,10 @@ export const CategoryMgt = () => {
     _orderBy: orderBy,
     _order: order,
   });
+
+  isLoading ? 
+  setLoader({showLoader: true, loaderText: "Loading"}) : 
+  setLoader({showLoader: false, loaderText: ""})
 
   const [categoryNoOfPostsArr, setCategoryNoOfPostsArr ] = useState([] as number[])
   useEffect(() => {

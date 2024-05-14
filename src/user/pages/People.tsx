@@ -9,6 +9,7 @@ import { QueryReturn } from "../../generics/typings/typngs";
 import { getUsersFromEntityGroupProperty } from "../contexts/api/user";
 import { camelCaseNameFormatter } from "../../generics/utils/camelCaseNameFormatter";
 import { User } from "./User";
+import { useModalContextStore } from "../../generics/components/modals/ModalContextProvider";
 
 export interface IPeopleFromEntityProp
   extends IGetEntitiesFromModelArrayPropertyDTO {}
@@ -20,12 +21,16 @@ export const PeopleFromEntity = (prop: IPeopleFromEntityProp) => {
   const [users, setUsers] = useState({} as QueryReturn<IUserDTO>);
   const [_page, set_Page] = useState(1);
 
+  const {setLoader} = useModalContextStore()
   useEffect(() => {
     (async () => {
       try {
+        setLoader({showLoader: true, loaderText: "loading users"});
         const usersRes = await getUsersFromEntityGroupProperty(queryPayload);
         setUsers(usersRes);
+        setLoader({showLoader: false, loaderText: ""})
       } catch (error) {
+        setLoader({showLoader: false, loaderText: ""})
         toast.error((error as any).message);
       }
     })();

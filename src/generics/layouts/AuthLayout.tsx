@@ -6,10 +6,13 @@ import { useEffect } from "react";
 import { useAuthContextStore } from "../../auth/contexts/AuthContext";
 import { Header } from "../components/Header";
 import { useThemeContextStore } from "../contexts/theme/theme";
+import { LoaderModal } from "../components/modals/LoaderModal";
+import { useModalContextStore } from "../components/modals/ModalContextProvider";
 //import "../assets/css/bootstrap.min.css";
 export const AuthLayout = () => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
+  const {loader} = useModalContextStore()
   const {themeCssClass} = useThemeContextStore()
   const { isLoggedIn, isAnAdmin } = useAuthContextStore();
   useEffect(() => {
@@ -39,6 +42,11 @@ export const AuthLayout = () => {
             &copy; {new Date().getFullYear()} Bonaventure, AppLawsIT
           </h6>
         </div>
+        {
+          loader.showLoader && (
+            <LoaderModal />
+          )
+        }
         <ToastContainer />
       </div>
     </div>

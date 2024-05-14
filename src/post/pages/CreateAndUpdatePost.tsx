@@ -33,7 +33,7 @@ import { useGetFocalareasQuery } from "../../focalarea/contexts/focalarea";
 import { TextEditor } from "../../generics/components/form/TextEditor";
 import { CustomTextArea } from "../../generics/components/form/CustomTextArea";
 import { DisplayMediaFiles } from "../../generics/file/components/DisplayMediaFiles";
-import { IDeleteAttachmentFilesDTO } from "../../generics/typings/typngs";
+import { IDeleteAttachmentFilesDTO, IGenericResponse } from "../../generics/typings/typngs";
 import { toast } from "react-toastify";
 import { useNavigate, useNavigation, useParams } from "react-router-dom";
 import { useGetCategoryQuery, useGetCategorysQuery } from "../../category/contexts/category";
@@ -75,6 +75,8 @@ export const CreateOrUpdatePost = (prop?: ICreatePostProp) => {
   );
   //let initialData: IPostDTO = {} as IPostDTO;
 
+  const {setLoader} = useModalContextStore()
+  
   const { data: clustersData } = useGetClustersQuery({});
   const { data: categoryData } = useGetCategorysQuery({});
   const { data: focalareasData } = useGetFocalareasQuery({});
@@ -86,7 +88,9 @@ export const CreateOrUpdatePost = (prop?: ICreatePostProp) => {
     (async () => {
       try {
         if (viewPurpose === "Edit" && postId) {
-          const res = await getPost(postId);
+          
+      setLoader({showLoader: true, loaderText: "loading post data"});
+      const res = await getPost(postId);
           setPostData(res);
           if (clusters?.length > 0) {
             setSelectedClusters(
@@ -110,7 +114,10 @@ export const CreateOrUpdatePost = (prop?: ICreatePostProp) => {
             );
           }
         }
+        setLoader({showLoader: false, loaderText: ""});
       } catch (error) {
+        setLoader({showLoader: false, loaderText: ""});
+        toast.error((error as IGenericResponse<unknown>).message);
         console.log("Error fetching initial data", error);
       }
     })();
@@ -151,7 +158,8 @@ export const CreateOrUpdatePost = (prop?: ICreatePostProp) => {
     mediaFiles: IFileAndObjectUrl[]
   ): Promise<null> {
     try {
-      setResponseData({ isLoading: true, isError: false });
+      
+      setLoader({showLoader: true, loaderText: "uploading files"});
       const uploadfilesRes = await uploadFiles(e, mediaFiles);
       if (uploadfilesRes && Array.isArray(uploadfilesRes)) {
         const {
@@ -170,6 +178,7 @@ export const CreateOrUpdatePost = (prop?: ICreatePostProp) => {
         postData.media = media;
       }
 
+      setLoader({showLoader: true, loaderText: "saving post"});
       const res =
         viewPurpose === "Edit"
           ? await updatePost({
@@ -177,21 +186,13 @@ export const CreateOrUpdatePost = (prop?: ICreatePostProp) => {
               socialpostId: postId as string,
             })
           : await createPost(postData);
-      setResponseData({
-        isLoading: false,
-        isError: false,
-        data: res.data,
-        error: null,
-      });
+      
+          setLoader({showLoader: false, loaderText: ""});
       navigate(-1);
       return null;
     } catch (err) {
-      setResponseData({
-        isLoading: false,
-        isError: true,
-        data: null,
-        error: err,
-      });
+      
+      setLoader({showLoader: false, loaderText: ""});
       navigate(-1);
       return null;
     }
@@ -201,63 +202,73 @@ export const CreateOrUpdatePost = (prop?: ICreatePostProp) => {
     e: FormEvent<HTMLFormElement>,
     selectedFiles: IFileAndObjectUrl[]
   ) => {
-    alert("got to additional");
-    setResponseData({ data: null, isError: false, isLoading: true });
-    const uploadPromise = await Promise.allSettled([
-      uploadFiles(e, selectedMediaFile),
-      uploadFiles(e, selectedFiles),
-    ]);
+    try{
 
-    const mediaFileRes =
-      uploadPromise[0].status === "fulfilled" ? uploadPromise[0].value : [];
-    const attachmentFilesRes =
-      uploadPromise[1].status === "fulfilled" ? uploadPromise[1].value : [];
-
-    if (mediaFileRes && mediaFileRes.length > 0) {
-      const {
-        fileType: mediaType,
-        url: mediaUrl,
-        secureUrl: mediaSecureUrl,
-        id: mediaId,
-      } = mediaFileRes[0];
-      //postData.media = {mediaId,mediaUrl: mediaUrl as string, mediaSecureUrl: mediaSecureUrl as string, mediaType}
-      const media = {
-        mediaId,
-        mediaUrl: mediaUrl as string,
-        mediaSecureUrl: mediaSecureUrl as string,
-        mediaType,
-      };
-      postData.media = media;
-    }
-    if (attachmentFilesRes && attachmentFilesRes.length > 0) {
-      const attachment: IMedia[] = [];
-      attachmentFilesRes.forEach((atFile) => {
+      setLoader({showLoader: true, loaderText: "uploading files"})
+      const uploadPromise = await Promise.allSettled([
+        uploadFiles(e, selectedMediaFile),
+        uploadFiles(e, selectedFiles),
+      ]);
+  
+      const mediaFileRes =
+        uploadPromise[0].status === "fulfilled" ? uploadPromise[0].value : [];
+      const attachmentFilesRes =
+        uploadPromise[1].status === "fulfilled" ? uploadPromise[1].value : [];
+  
+      if (mediaFileRes && mediaFileRes.length > 0) {
         const {
           fileType: mediaType,
           url: mediaUrl,
           secureUrl: mediaSecureUrl,
           id: mediaId,
-        } = atFile;
-        attachment.push({
+        } = mediaFileRes[0];
+        //postData.media = {mediaId,mediaUrl: mediaUrl as string, mediaSecureUrl: mediaSecureUrl as string, mediaType}
+        const media = {
           mediaId,
           mediaUrl: mediaUrl as string,
           mediaSecureUrl: mediaSecureUrl as string,
           mediaType,
+        };
+        postData.media = media;
+      }
+      if (attachmentFilesRes && attachmentFilesRes.length > 0) {
+        const attachment: IMedia[] = [];
+        attachmentFilesRes.forEach((atFile) => {
+          const {
+            fileType: mediaType,
+            url: mediaUrl,
+            secureUrl: mediaSecureUrl,
+            id: mediaId,
+          } = atFile;
+          attachment.push({
+            mediaId,
+            mediaUrl: mediaUrl as string,
+            mediaSecureUrl: mediaSecureUrl as string,
+            mediaType,
+          });
         });
-      });
-      //setPostData({ ...postData, attachment });
-      postData.attachment = attachment;
+        //setPostData({ ...postData, attachment });
+        postData.attachment = attachment;
+      }
+  
+      setLoader({showLoader: true, loaderText: "saving post"})
+      const res =
+        viewPurpose === "Edit"
+          ? await updatePost({
+              ...postData,
+              socialpostId: postId as string,
+            })
+          : await createPost(postData);
+      
+          setLoader({showLoader: false, loaderText: ""})
+          navigate(-1);
+      return null;
+    
+    }catch(error){
+      setLoader({showLoader: false, loaderText: ""})
+      toast.error((error as IGenericResponse<unknown>).message);
+      return null;
     }
-
-    const res =
-      viewPurpose === "Edit"
-        ? await updatePost({
-            ...postData,
-            socialpostId: postId as string,
-          })
-        : await createPost(postData);
-    navigate(-1);
-    return null;
   };
 
   const togglePostAdditionalFiles = () => {
@@ -285,20 +296,28 @@ export const CreateOrUpdatePost = (prop?: ICreatePostProp) => {
     }
   };
 
+
   const deleteFiles = async (fileUrls: string[]) => {
-    const payload: IDeleteAttachmentFilesDTO = {
-      attachmentUrls: fileUrls,
-      primaryId: `${postData._id}`,
-      fromFeature: "post",
-    };
-    await deletePostAttachmentFiles(payload);
-    toast.success("post attachments deleted");
-    setPostData((prev) => ({
-      ...postData,
-      attachment: prev.attachment?.filter(
-        (at) => !fileUrls.includes(at.mediaUrl)
-      ),
-    }));
+    try{
+      const payload: IDeleteAttachmentFilesDTO = {
+        attachmentUrls: fileUrls,
+        primaryId: `${postData._id}`,
+        fromFeature: "post",
+      };
+      setLoader({showLoader: true, loaderText: "deleting attachments"});
+      await deletePostAttachmentFiles(payload);
+      toast.success("post attachments deleted");
+      setPostData((prev) => ({
+        ...postData,
+        attachment: prev.attachment?.filter(
+          (at) => !fileUrls.includes(at.mediaUrl)
+        ),
+      }));
+      setLoader({showLoader: false, loaderText: ""});
+    }catch(error){
+      setLoader({showLoader: false, loaderText: ""});
+      toast.error((error as IGenericResponse<unknown>).message)
+    }
   };
 
   return (
@@ -306,12 +325,7 @@ export const CreateOrUpdatePost = (prop?: ICreatePostProp) => {
       <div className="col-sm-7">
         <div className="form-group">
           <div>
-            <ResponseMessage
-              isLoading={responseData.isLoading}
-              isError={responseData.isError}
-              data={responseData.data}
-              error={responseData.error}
-            />
+            
             <div>
               {Object.keys(inputFields).map((field, i) => {
                 return (

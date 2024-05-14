@@ -26,9 +26,9 @@ export const AssignPosition = (prop: IAssignPositionProp) => {
         if(!userMemberType) setSelectedMemberTypeOptions({} as ISelectOption)
         else setSelectedMemberTypeOptions({label: userMemberType, value: USER_MEMBER_TYPES[userMemberType]})
     }, [])
+    const {setLoader} = useModalContextStore()
     const updateUserPosition = async () => {
         try{
-            toast.info("updating")
             const {position, positionNote, memberType} = user;
             const payload = {
                 userId: `${prop.user._id}`,
@@ -37,10 +37,13 @@ export const AssignPosition = (prop: IAssignPositionProp) => {
                 memberType
             
             }
+            setLoader({showLoader: true, loaderText: "updating"})
             await updateUserAdmin(payload as unknown as IUpdateUserDTO)
             toast.success("user positions updated successfuly")
+            setLoader({showLoader: false, loaderText: ""})
             setShowModalText("");
         }catch(error){
+            setLoader({showLoader: false, loaderText: ""})
             toast.error((error as any).message)
         }
     }

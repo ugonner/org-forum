@@ -19,6 +19,8 @@ import { IFileAndObjectUrl, IMultipleFilesProps } from "../../generics/file/comp
 import { deleteFile, selectMultipleFiles, uploadFiles } from "../../generics/file/utils/filehooks";
 import { createUser } from "../contexts/auth";
 import { ICreateUser } from "../typings/auth";
+import { useModalContextStore } from "../../generics/components/modals/ModalContextProvider";
+import { IGenericResponse } from "../../generics/typings/typngs";
 
 export const CreateUserInStages = () => {
   const navParam = useParams();
@@ -43,22 +45,34 @@ export const CreateUserInStages = () => {
   useEffect(() => {
     (
       async () => {
-        const userRes = await getUser(`${userId}`);
-        setUser(userRes);
-        const clustersRes = await getClusters({});
+        try{
+          
         
-        const selectOptions: ISelectOption[] = [];
-        const allOptions: ISelectOption[] = [];
-        clustersRes.docs.forEach((c) => {
-          const cOption: ISelectOption = {label: c.clusterName, value: `${c._id}`};
-          allOptions.push(cOption);
-          const isSelected = (userRes?.clusters as IClusterDTO[])?.find((uc) => c._id === (uc._id ?? uc))
-          if(isSelected){
-            selectOptions.push(cOption)
-          }
-        })
-        setClusterOptions(allOptions);
-        setSelectedClusterOptions(selectOptions);
+      setLoader({showLoader: true, loaderText: "loading user data"})
+      const userRes = await getUser(`${userId}`);
+      setUser(userRes);
+
+      
+    setLoader({showLoader: true, loaderText: "loading clusters / groups"})
+      const clustersRes = await getClusters({});
+      
+      const selectOptions: ISelectOption[] = [];
+      const allOptions: ISelectOption[] = [];
+      clustersRes.docs.forEach((c) => {
+        const cOption: ISelectOption = {label: c.clusterName, value: `${c._id}`};
+        allOptions.push(cOption);
+        const isSelected = (userRes?.clusters as IClusterDTO[])?.find((uc) => c._id === (uc._id ?? uc))
+        if(isSelected){
+          selectOptions.push(cOption)
+        }
+      })
+      setClusterOptions(allOptions);
+      setSelectedClusterOptions(selectOptions);
+        }catch(error){
+          setLoader({showLoader: false, loaderText: ""});
+          toast.error((error as IGenericResponse<unknown>).message);
+          
+        }
       }
     )()
   }, []);
@@ -237,8 +251,12 @@ export const CreateUserInStages = () => {
   ];
 
   const [page, setPage] = useState(1);
+
+  const {setLoader} = useModalContextStore();
   const submitUser = async () => {
     try{
+
+      setLoader({showLoader: true, loaderText: "uploading"})
 
       const res = await uploadFiles({} as any, selectedFiles);
       if(res?.length){
@@ -248,13 +266,18 @@ export const CreateUserInStages = () => {
       if((user.clusters as IClusterDTO[])[0]?._id){
         user.clusters = (user.clusters as IClusterDTO[]).map((cluster) => `${cluster._id}`)
       }
+      setLoader({showLoader: true, loaderText: "saving"})
+
       if(userId && !/create/i.test(userId)){
         await updateUserAdmin({...user, userId});
       }else {
         await createUser(user as ICreateUser)
       }
 
+      setLoader({showLoader: false, loaderText: ""})
+
     }catch(error){
+      setLoader({showLoader: false, loaderText: ""})
       toast.error((error as any).message)
     }
   } 

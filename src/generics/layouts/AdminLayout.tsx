@@ -8,13 +8,15 @@ import { useAuthContextStore } from "../../auth/contexts/AuthContext";
 import { Footer } from "../components/Footer";
 import { Header } from "../components/Header";
 import { useThemeContextStore } from "../contexts/theme/theme";
+import { LoaderModal } from "../components/modals/LoaderModal";
+import { useModalContextStore } from "../components/modals/ModalContextProvider";
 
 export const AdminLayout = () => {
   const [showMenu, setShowMenu] = useState(true);
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const {themeCssClass} = useThemeContextStore()
-  
+  const {loader} = useModalContextStore()
   const { isLoggedIn, isAnAdmin } = useAuthContextStore();
   const [appDomainName, setAppDomainName] = useState("");
   useEffect(() => {
@@ -73,6 +75,11 @@ export const AdminLayout = () => {
       <div className="footer my-5">
         <h6 className="font-weight-bold p-3 ">&copy; {new Date().getFullYear()} Bonaventure, AppLawsIT</h6>
       </div>
+      {
+        loader.showLoader && (
+          <LoaderModal />
+        )
+      }
       <ToastContainer />
       
     </div>

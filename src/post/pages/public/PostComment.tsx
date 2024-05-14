@@ -35,6 +35,7 @@ export const PostComment = (prop: ICommentProp) => {
     setIsLikingComment(isLiking as boolean);
   }, []);
 
+  const {setLoader} = useModalContextStore()
   const deletePostCommentAttachemets = async (
     commentId: string,
     mediaUrls: string[]
@@ -45,8 +46,12 @@ export const PostComment = (prop: ICommentProp) => {
         fromFeature: "comment",
         attachmentUrls: mediaUrls,
       };
+      
+      setLoader({showLoader: true, loaderText: "deleting files"});
       await deletePostAttachmentFiles(payload);
+      setLoader({showLoader: false, loaderText: ""});
     } catch (error) {
+      setLoader({showLoader: false, loaderText: ""});
       toast.error((error as any).message);
     }
   };

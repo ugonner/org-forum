@@ -5,11 +5,16 @@ import { TextInput } from "../../generics/components/form/TextInput";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 import { ResponseMessage } from "../../generics/components/ResponseMessage";
 import { Popover } from "../../generics/components/popover/Popover";
+import { useModalContextStore } from "../../generics/components/modals/ModalContextProvider";
+import { toast } from "react-toastify";
+import { IGenericResponse } from "../../generics/typings/typngs";
 
 export const LoginUser = () => {
   const [userData, setUserData] = useState<LoginDTO>({} as LoginDTO);
   const navigate = useNavigate();
 
+  const {setLoader} = useModalContextStore()
+  
   const handleInput = (e: ChangeEvent<HTMLInputElement>) => {
     const name = e.target.name;
     const value = e.target.value;
@@ -23,7 +28,15 @@ export const LoginUser = () => {
     authService.mutate(userData);
   };
 
+  if(authService.isError){
+    setLoader({showLoader: false, loaderText: ""});
+    toast.error((authService.error as IGenericResponse<unknown>).message)
+  }
+  
+  authService.isLoading && setLoader({showLoader: true, loaderText: "logging in"})
+  
   if(authService.data){
+    setLoader({showLoader: false, loaderText: ""})
     const token = authService.data.data?.token
     const user = authService.data.data?.user;
     token && localStorage.setItem("token", token)
@@ -42,12 +55,6 @@ export const LoginUser = () => {
         <div className="col-sm-3"></div>
         <div className="col-sm-6">
           
-        <ResponseMessage
-          isError={authService.isError}
-          isLoading={authService.isLoading}
-          data={authService.data}
-          error={authService.error}
-          />
           {Object.keys(inputFields).map((field) => {
            return (
               <TextInput

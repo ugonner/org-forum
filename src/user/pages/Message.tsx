@@ -11,18 +11,25 @@ export const MessageUsers = (prop: IMessageUserProp) => {
     const {setShowModalText} = useModalContextStore()
     const [usserMessage, setUserMessage] = useState("");
     const [messageSubject, setMessageSubject] = useState("");
+    const {setLoader} = useModalContextStore()
     const sendUserMessage = async ( config: {messageType: "SMS" | "Email"}) => {
         try{
             //send message function
+            
+        setLoader({showLoader: true, loaderText: ""})
             const payload: IUserMessageConfigDTO = {
                 message: usserMessage,
                 messageType: config.messageType,
                 subject: messageSubject
             }
+
             await sendMessageToUsers(payload, prop.usersQueryPayload)
             toast("message sent");
             setShowModalText("")
+            
+        setLoader({showLoader: false, loaderText: ""})
         }catch(error){
+            setLoader({showLoader: false, loaderText: ""})
             toast((error as any).message)
         }
     }

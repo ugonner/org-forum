@@ -4,6 +4,7 @@ import { IFocalareaDTO } from "../../typings/focalarea";
 import { toast } from "react-toastify";
 import { getFocalareas } from "../../contexts/focalarea";
 import { ItemCard } from "../../../generics/components/ItemCard";
+import { useModalContextStore } from "../../../generics/components/modals/ModalContextProvider";
 
 export const Focalareas = () => {
   const [focalareas, setFocalareas] = useState({} as QueryReturn<IFocalareaDTO>);
@@ -15,12 +16,16 @@ export const Focalareas = () => {
   } as {[key: string]: unknown});
   const [searchTerm, setSearchTerm] = useState("");
 
+  const {setLoader} = useModalContextStore()
   useEffect(() => {
     (async () => {
       try {
+        setLoader({showLoader: true, loaderText: ""})
         const focalareaRes = await getFocalareas(queryPayload);
         setFocalareas(focalareaRes);
+        setLoader({showLoader: false, loaderText: ""})
       } catch (error) {
+        setLoader({showLoader: false, loaderText: ""})
         toast((error as any).message);
       }
     })();
