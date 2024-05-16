@@ -11,6 +11,9 @@ import {
 import { useModalContextStore } from "../../generics/components/modals/ModalContextProvider";
 import { getPostsCount } from "../../post/contexts/post";
 import { useThemeContextStore } from "../../generics/contexts/theme/theme";
+import { LoaderModal } from "../../generics/components/modals/LoaderModal";
+import { IGenericResponse } from "../../generics/typings/typngs";
+import { toast } from "react-toastify";
 
 export const CategoryMgt = () => {
   const {setShowModalText} = useModalContextStore()
@@ -47,11 +50,14 @@ export const CategoryMgt = () => {
     _order: order,
   });
 
-  isLoading ? 
-  setLoader({showLoader: true, loaderText: "Loading"}) : 
-  setLoader({showLoader: false, loaderText: ""})
 
-  const [categoryNoOfPostsArr, setCategoryNoOfPostsArr ] = useState([] as number[])
+
+  if(isError){
+    toast.error((error as IGenericResponse<unknown>).message)
+  }
+  
+  
+    const [categoryNoOfPostsArr, setCategoryNoOfPostsArr ] = useState([] as number[])
   useEffect(() => {
   getCategorys({})
   .then((res) => {
@@ -88,15 +94,10 @@ export const CategoryMgt = () => {
 
 
 
+  
+  if(isLoading ) return (<LoaderModal />);
   return (
     <div>
-      <ResponseMessage
-        isLoading={isLoading}
-        isError={isError}
-        error={error}
-        data={categorys}
-      />
-
       <div className="row">
         <div className="col-sm-4">
           <input

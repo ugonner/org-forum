@@ -11,6 +11,9 @@ import {
 import { useModalContextStore } from "../../generics/components/modals/ModalContextProvider";
 import { getPostsCount } from "../../post/contexts/post";
 import { useThemeContextStore } from "../../generics/contexts/theme/theme";
+import { LoaderModal } from "../../generics/components/modals/LoaderModal";
+import { IGenericResponse } from "../../generics/typings/typngs";
+import { toast } from "react-toastify";
 
 export const FocalareaMgt = () => {
   const {tableThemeCssClass} = useThemeContextStore()
@@ -46,10 +49,12 @@ const {setLoader} = useModalContextStore()
     _order: order,
   });
 
-  isLoading ? 
-  setLoader({showLoader: true, loaderText: "loading data"}) : 
-  setLoader({showLoader: false, loaderText: ""})
 
+
+  if(isError){
+    toast.error((error as IGenericResponse<unknown>).message)
+  }
+  
   const [focalareaNoOfPostsArr, setFocalareaNoOfPostsArr ] = useState([] as number[])
   useEffect(() => {
     getFocalareas({})
@@ -87,6 +92,7 @@ const {setLoader} = useModalContextStore()
 
 
 
+  if(isLoading ) return (<LoaderModal />);
   return (
     <div>
      

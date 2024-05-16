@@ -68,6 +68,7 @@ export const CreateUserInStages = () => {
       })
       setClusterOptions(allOptions);
       setSelectedClusterOptions(selectOptions);
+      setLoader({showLoader: false, loaderText: ""});
         }catch(error){
           setLoader({showLoader: false, loaderText: ""});
           toast.error((error as IGenericResponse<unknown>).message);
@@ -333,7 +334,6 @@ export const CreateUserInStages = () => {
           <button 
           className="w-100 btn"
           onClick={() => {
-            alert(JSON.stringify(selectedFiles))
             submitUser();
           }}
           >

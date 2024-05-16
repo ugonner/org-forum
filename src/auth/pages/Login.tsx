@@ -8,6 +8,7 @@ import { Popover } from "../../generics/components/popover/Popover";
 import { useModalContextStore } from "../../generics/components/modals/ModalContextProvider";
 import { toast } from "react-toastify";
 import { IGenericResponse } from "../../generics/typings/typngs";
+import { LoaderModal } from "../../generics/components/modals/LoaderModal";
 
 export const LoginUser = () => {
   const [userData, setUserData] = useState<LoginDTO>({} as LoginDTO);
@@ -29,11 +30,10 @@ export const LoginUser = () => {
   };
 
   if(authService.isError){
-    setLoader({showLoader: false, loaderText: ""});
     toast.error((authService.error as IGenericResponse<unknown>).message)
   }
   
-  authService.isLoading && setLoader({showLoader: true, loaderText: "logging in"})
+  if(authService.isLoading ) return (<LoaderModal />)
   
   if(authService.data){
     setLoader({showLoader: false, loaderText: ""})

@@ -15,6 +15,8 @@ import { getClusters } from "../../cluster/contexts/cluster";
 import { getFocalareas } from "../../focalarea/contexts/focalarea";
 import { toast } from "react-toastify";
 import { useThemeContextStore } from "../../generics/contexts/theme/theme";
+import { IGenericResponse } from "../../generics/typings/typngs";
+import { LoaderModal } from "../../generics/components/modals/LoaderModal";
 
 export const PostMgt = () => {
   const navigate = useNavigate();
@@ -51,13 +53,13 @@ export const PostMgt = () => {
     _order: order,
   });
 
-  isLoading ? setLoader({showLoader: true}) : setLoader({showLoader: false});
-  
+ 
 
-  const setUpModal = (postId: string) => {
-    setPostId(postId);
-    setShowModalText("create-post")
-  };
+
+  if(isError){
+    toast.error((error as IGenericResponse<unknown>).message)
+  }
+  
 
 
   const searchBy = (searchTerm: string) => {
@@ -87,6 +89,8 @@ export const PostMgt = () => {
     .catch((err) => console.error(err.message))
     
   }, [])
+  
+  if(isLoading ) return (<LoaderModal />);
   return (
     <div>
      

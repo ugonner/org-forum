@@ -13,6 +13,7 @@ import { getPostsCount } from "../../post/contexts/post";
 import { useThemeContextStore } from "../../generics/contexts/theme/theme";
 import { toast } from "react-toastify";
 import { IGenericResponse } from "../../generics/typings/typngs";
+import { LoaderModal } from "../../generics/components/modals/LoaderModal";
 
 export const ClusterMgt = () => {
   const {tableThemeCssClass} = useThemeContextStore();
@@ -53,12 +54,11 @@ export const ClusterMgt = () => {
   // setLoader({showLoader: true, loaderText: "loading clusters"}) : 
   // setLoader({showLoader: false, loaderText: ""})
   
-  isLoading && setLoader({showLoader: true});
-  (!isLoading) && setLoader({showLoader: false});
+
   if(isError){
-    setLoader({showLoader: false, loaderText: ""})
     toast.error((error as IGenericResponse<unknown>).message)
   }
+  
 
   const [clusterNoOfPostsArr, setClusterNoOfPostsArr ] = useState([] as number[])
   useEffect(() => {
@@ -96,6 +96,7 @@ export const ClusterMgt = () => {
   };
 
 
+  if(isLoading ) return (<LoaderModal />);
 
   return (
     <div>

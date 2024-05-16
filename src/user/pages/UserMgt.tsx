@@ -22,6 +22,7 @@ import { AssignPosition } from "./AssignPosition";
 import { AssignRole } from "./AssignRoles";
 import { useThemeContextStore } from "../../generics/contexts/theme/theme";
 import { IGenericResponse } from "../../generics/typings/typngs";
+import { LoaderModal } from "../../generics/components/modals/LoaderModal";
 
 export const UserMgt = () => {
   const navigate = useNavigate();
@@ -60,12 +61,13 @@ export const UserMgt = () => {
     _order: order,
   });
 
-  isLoading && setLoader({showLoader: true});
-  (!isLoading) && setLoader({showLoader: false});
+  
+
   if(isError){
-    setLoader({showLoader: false, loaderText: ""})
     toast.error((error as IGenericResponse<unknown>).message)
   }
+  
+  
 
 
   const setUpModal = (config: {modalName: string; userId: string; user?: IUserDTO;}) => {
@@ -115,6 +117,8 @@ export const UserMgt = () => {
       toast.error((error as any).message)
     }
   } 
+  
+  if(isLoading ) return (<LoaderModal />)
   return (
     <div>
 
