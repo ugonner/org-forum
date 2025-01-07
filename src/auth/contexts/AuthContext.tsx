@@ -12,7 +12,9 @@ const AuthContext = React.createContext<IAuthContextStore>({} as IAuthContextSto
 
 export const AuthProvider = ({children}: React.PropsWithChildren ) => {
     const token = localStorage.getItem("token");
-    const [isAnAdmin, setIsAnAdmin] = useState(true);
+    const localUser = JSON.parse(`${localStorage.getItem("user")}`);
+    const hasAdminRole = /admin/i.test(JSON.stringify(localUser?.role))
+    const [isAnAdmin, setIsAnAdmin] = useState(hasAdminRole);
     const [isLoggedIn, setIsLoggedIn] = useState( token ? true : false)
     
     const login = () => setIsLoggedIn(true);

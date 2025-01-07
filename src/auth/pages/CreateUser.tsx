@@ -1,5 +1,5 @@
 import { ChangeEvent, useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { IUserDTO } from "../../user/typings/user";
 import {
   FormDisplay,
@@ -24,6 +24,8 @@ import { IGenericResponse } from "../../generics/typings/typngs";
 
 export const CreateUserInStages = () => {
   const navParam = useParams();
+  const navigate = useNavigate();
+
   const userId = navParam.userId;
 
   const [user, setUser] = useState({} as IUserDTO);
@@ -274,9 +276,13 @@ export const CreateUserInStages = () => {
       }else {
         await createUser(user as ICreateUser)
       }
+      if(userId && !/create/i.test(userId)) navigate(`/user/profile/${userId}`);
+      else navigate(`/auth/login`);
+      
+
 
       setLoader({showLoader: false, loaderText: ""})
-
+      
     }catch(error){
       setLoader({showLoader: false, loaderText: ""})
       toast.error((error as any).message)

@@ -9,11 +9,12 @@ import { useModalContextStore } from "../../generics/components/modals/ModalCont
 import { toast } from "react-toastify";
 import { IGenericResponse } from "../../generics/typings/typngs";
 import { LoaderModal } from "../../generics/components/modals/LoaderModal";
+import { useAuthContextStore } from "../contexts/AuthContext";
 
 export const LoginUser = () => {
   const [userData, setUserData] = useState<LoginDTO>({} as LoginDTO);
   const navigate = useNavigate();
-
+ const {setIsAnAdmin} = useAuthContextStore();
   const {setLoader} = useModalContextStore()
   
   const handleInput = (e: ChangeEvent<HTMLInputElement>) => {
@@ -41,7 +42,8 @@ export const LoginUser = () => {
     const user = authService.data.data?.user;
     token && localStorage.setItem("token", token)
     user && localStorage.setItem("user", JSON.stringify(user))
-
+    if(/admin/i.test(JSON.stringify(user?.role))) setIsAnAdmin(true);
+    
     navigate(`/user/profile/${user?.userId}`)
 }
   const inputFields: LoginDTO = {
@@ -52,8 +54,8 @@ export const LoginUser = () => {
   return (
     <div className="container">
       <div className="row">
-        <div className="col-sm-3"></div>
-        <div className="col-sm-6">
+        <div className="col-sm-2"></div>
+        <div className="col-sm-7">
           
           {Object.keys(inputFields).map((field) => {
            return (
